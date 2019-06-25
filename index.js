@@ -4,15 +4,15 @@ var request = require('request');
 
 // Store our app's ID and Secret. These we got from Step 1. 
 // For this tutorial, we'll keep your API credentials right here. But for an actual app, you'll want to  store them securely in environment variables. 
-var clientId = '8185500007.674690362016';
-var clientSecret = '7156a965e8f2d09c293426c8de95d2eb';
+var clientId = process.env.clientId;
+var clientSecret = process.env.clientSecret;
 
 // Instantiates Express and assigns our app variable to it
 var app = express();
 
 
 // Again, we define a port we want to listen to
-const PORT=8080;
+const PORT= process.env.PORT || 8080;
 
 // Lets start our server
 app.listen(PORT, function () {
