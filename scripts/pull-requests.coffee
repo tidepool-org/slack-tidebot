@@ -8,7 +8,7 @@
 #   HUBOT_GITHUB_TOKEN (see https://github.com/iangreenleaf/githubot)
 #
 # Commands:
-#   hubot create pr from <Tidepool-org>/<repo>/<branch> into <base> for <reviewer github id> to review "<body>"
+#   hubot create pr from <Tidepool-org>/<repo>/<branch> into <base> "<body>"
 #
 # Notes:
 # user (required): The github user or org that owns the repo.
@@ -30,7 +30,7 @@ githubToken = process.env.HUBOT_GITHUB_TOKEN
 module.exports = (robot) ->
   github = require('githubot')(robot)
 
-  robot.respond /create pr from ([-_\.0-9a-zA-Z]+)\/([-_\.a-zA-z0-9\/]+)\/([-_\.a-zA-z0-9\/]+)(?: into ([-_\.a-zA-z0-9\/]+))?(?: for ([-_\.a-zA-z0-9\/]+) to review))?(?: "(.*)")?$/i, (msg) ->
+  robot.respond /create pr from ([-_\.0-9a-zA-Z]+)\/([-_\.a-zA-z0-9\/]+)\/([-_\.a-zA-z0-9\/]+)(?: into ([-_\.a-zA-z0-9\/]+))?(?: "(.*)")?$/i, (msg) ->
     return if missingEnv(msg)
 
     base = msg.match[4]
@@ -39,7 +39,7 @@ module.exports = (robot) ->
       title: "PR to merge #{msg.match[3]} into #{base}",
       head: msg.match[3],
       base: base,
-      body: msg.match[6] || 'PR for review'
+      body: msg.match[5] || 'PR for review'
     }
 
     github.handleErrors (response) ->
@@ -51,7 +51,7 @@ module.exports = (robot) ->
         else
           msg.send 'Error: Sorry TidePooler, something is wrong with your request.'
 
-    github.post "repos/#{msg.match[1]}/#{msg.match[2]}/pulls/:pull_number/#{msg.match[5]}", data, (pr) ->
+    github.post "repos/#{msg.match[1]}/#{msg.match[2]}/pulls", data, (pr) ->
       msg.send "Success! Pull request created for #{msg.match[3]}. #{pr.html_url}"
 
   missingEnv = (msg) ->
