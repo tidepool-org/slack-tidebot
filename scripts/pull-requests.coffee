@@ -8,7 +8,7 @@
 #   HUBOT_GITHUB_TOKEN (see https://github.com/iangreenleaf/githubot)
 #
 # Commands:
-#   hubot create pr from <user>/<repo>/<branch> [into <base>] ["<body>"]
+#   hubot create pr from <Tidepool-org>/<repo>/<branch> into <base> for <reviewer github id> to review "<body>"
 #
 # Notes:
 # user (required): The github user or org that owns the repo.
@@ -30,28 +30,28 @@ githubToken = process.env.HUBOT_GITHUB_TOKEN
 module.exports = (robot) ->
   github = require('githubot')(robot)
 
-  robot.respond /create pr from ([-_\.0-9a-zA-Z]+)\/([-_\.a-zA-z0-9\/]+)\/([-_\.a-zA-z0-9\/]+)(?: into ([-_\.a-zA-z0-9\/]+))?(?: "(.*)")?$/i, (msg) ->
+  robot.respond /create pr from ([-_\.0-9a-zA-Z]+)\/([-_\.a-zA-z0-9\/]+)\/([-_\.a-zA-z0-9\/]+)(?: into ([-_\.a-zA-z0-9\/]+) for ([-_\.a-zA-z0-9\/]+) to review)?(?: "(.*)")?$/i, (msg) ->
     return if missingEnv(msg)
 
-    base = msg.match[4] || 'master'
+    base = msg.match[4]
 
     data = {
       title: "PR to merge #{msg.match[3]} into #{base}",
       head: msg.match[3],
       base: base,
-      body: msg.match[5] || ''
+      body: msg.match[6] || 'PR for review'
     }
 
     github.handleErrors (response) ->
       switch response.statusCode
         when 404
-          msg.send 'Error: Sorry mate, this is not a valid repo that I have access to.'
+          msg.send 'Error: Sorry TidePooler, this is not a valid repo that I have access to.'
         when 422
-          msg.send "Error: Yo mate, the pull request has already been created or the branch does not exist."
+          msg.send "Error: Yo TidePooler, the pull request has already been created or the branch does not exist."
         else
-          msg.send 'Error: Sorry mate, something is wrong with your request.'
+          msg.send 'Error: Sorry TidePooler, something is wrong with your request.'
 
-    github.post "repos/#{msg.match[1]}/#{msg.match[2]}/pulls", data, (pr) ->
+    github.post "repos/#{msg.match[1]}/#{msg.match[2]}/pulls/:pull_number/#{msg.match[5]}", data, (pr) ->
       msg.send "Success! Pull request created for #{msg.match[3]}. #{pr.html_url}"
 
   missingEnv = (msg) ->
