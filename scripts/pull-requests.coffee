@@ -30,7 +30,7 @@ githubToken = process.env.HUBOT_GITHUB_TOKEN
 module.exports = (robot) ->
   github = require('githubot')(robot)
 
-  robot.respond /create pr from ([-_\.0-9a-zA-Z]+)\/([-_\.a-zA-z0-9\/]+)\/([-_\.a-zA-z0-9\/]+)(?: into ([-_\.a-zA-z0-9\/]+) for ([-_\.a-zA-z0-9\/]+) to review)?(?: "(.*)")?$/i, (msg) ->
+  robot.respond /create pr from ([-_\.0-9a-zA-Z]+)\/([-_\.a-zA-z0-9\/]+)\/([-_\.a-zA-z0-9\/]+)(?: into ([-_\.a-zA-z0-9\/]+))?(?: for ([-_\.a-zA-z0-9\/]+) to review))?(?: "(.*)")?$/i, (msg) ->
     return if missingEnv(msg)
 
     base = msg.match[4]
