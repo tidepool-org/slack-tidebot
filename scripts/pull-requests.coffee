@@ -40,9 +40,7 @@ module.exports = (robot) ->
       head: msg.match[3],
       base: base,
       body: msg.match[6] || 'PR for review',
-      reviewers: [
-    msg.match[5]
-  ]
+      reviewers: [msg.match[5]]
     }
 
     github.handleErrors (response) ->
