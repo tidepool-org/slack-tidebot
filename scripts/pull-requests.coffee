@@ -52,7 +52,7 @@ module.exports = (robot) ->
         else
           msg.send 'Error: Sorry TidePooler, something is wrong with your request.'
 
-    github.post "repos/#{msg.match[1]}/#{msg.match[2]}/pulls", data, (pr) ->
+    github.post "repos/#{msg.match[1]}/#{msg.match[2]}/pulls/:pull_number/requested_reviewers", data, (pr) ->
       msg.send "Success! Pull request created for #{msg.match[3]}. #{pr.html_url}"
 
   missingEnv = (msg) ->
