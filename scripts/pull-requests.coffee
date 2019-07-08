@@ -40,7 +40,9 @@ module.exports = (robot) ->
       head: msg.match[3],
       base: base,
       body: msg.match[6] || 'PR for review',
-      reviewers: [msg.match[5]]
+    }
+    reviewers = {
+        reviewers: [msg.match[5]]
     }
 
     github.handleErrors (response) ->
@@ -54,7 +56,7 @@ module.exports = (robot) ->
 
     github.post "repos/#{msg.match[1]}/#{msg.match[2]}/pulls", data, (pr) ->
       msg.send "Success! Pull request created for #{msg.match[3]}. #{pr.html_url}"
-      github.post "repos/#{msg.match[1]}/#{msg.match[2]}/pulls/#{pr.number}/requested_reviewers", data
+      github.post "repos/#{msg.match[1]}/#{msg.match[2]}/pulls/#{pr.number}/requested_reviewers", reviewers
 
   missingEnv = (msg) ->
     unless githubToken?
