@@ -57,7 +57,7 @@ module.exports = (robot) ->
     github.post "repos/#{msg.match[1]}/#{msg.match[2]}/pulls", data, (pr) ->
       msg.send "Success! Pull request created for #{msg.match[3]}. #{pr.html_url}"
       github.post "repos/#{msg.match[1]}/#{msg.match[2]}/pulls/#{pr.number}/requested_reviewers", reviewers. (test) ->
-
+        console.log("this")
   missingEnv = (msg) ->
     unless githubToken?
       msg.send 'HUBOT_GITHUB_TOKEN is missing. Please ensure that it is set. See https://github.com/summera/hubot-github-create-pullrequests for more details about generating one.'
