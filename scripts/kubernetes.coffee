@@ -29,5 +29,5 @@ module.exports = (robot) ->
     #     room = req.params.room
     #     data = if req.body.payload? then JSON.parse req.body.payload else req.body
     #     comment = data.comment
-    robot.hear /\/deploy/, (res) ->
+    robot.hear /(?=/deploy+)/(?=qa1)/, (res) ->
         res.send "this may not work"
