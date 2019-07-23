@@ -25,9 +25,9 @@
 #
 
 module.exports = (robot) ->
-    robot.router.post '/hubot/gh-repo-events?room=github-events', (req, res) ->
-        room = req.params.room
-        data = if req.body.payload? then JSON.parse req.body.payload else req.body
-        comment = data.comment
-        robot.hear /deploy/, (res) ->
-            res.send "#{comment}"
+    # robot.router.post '/hubot/gh-repo-events?room=github-events', (req, res) ->
+    #     room = req.params.room
+    #     data = if req.body.payload? then JSON.parse req.body.payload else req.body
+    #     comment = data.comment
+    robot.hear /\/deploy/, (res) ->
+        res.send "this may not work"
