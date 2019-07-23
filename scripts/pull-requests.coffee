@@ -1,5 +1,5 @@
 # Description:
-#   Create Github Pull Requests with Hubot.
+#   Create Github Pull Requests with tidebot.
 #
 # Dependencies:
 #   "githubot": "^1.0.1"
@@ -8,10 +8,9 @@
 #   HUBOT_GITHUB_TOKEN (see https://github.com/iangreenleaf/githubot)
 #
 # Commands:
-#   hubot create pr from <Tidepool-org>/<repo>/<branch> into <base> "<body>"
+#   tidebot create pr from <Tidepool-org>/<repo>/<branch> into <base> for <reviewer_username> to review "<body>"
 #
 # Notes:
-# user (required): The github user or org that owns the repo.
 # repo (required): Repository where your branch exists.
 # branch (required): Name of branch.
 # base (optional): Name of branch you would like to request to merge into. Master by default.
@@ -22,8 +21,7 @@
 #   The token will need to be made from a user that has access to repo(s)
 #   you want hubot to interact with.
 #
-# Author:
-#  summera
+
 
 githubToken = process.env.HUBOT_GITHUB_TOKEN
 
@@ -56,6 +54,7 @@ module.exports = (robot) ->
 
     github.post "repos/#{msg.match[1]}/#{msg.match[2]}/pulls", data, (pr) ->
       msg.send "Success! Pull request created for #{msg.match[3]}. #{pr.html_url}"
+    #   github.post "repos/Tidepool-org/integration-test/contents/flux/environments/develop/tidepool-helmrelease.yaml"
       github.post "repos/#{msg.match[1]}/#{msg.match[2]}/pulls/#{pr.number}/requested_reviewers", reviewers, (test) ->
       msg.send test.html test.requested_reviewers[0].login
   missingEnv = (msg) ->
@@ -63,3 +62,4 @@ module.exports = (robot) ->
       msg.send 'HUBOT_GITHUB_TOKEN is missing. Please ensure that it is set. See https://github.com/summera/hubot-github-create-pullrequests for more details about generating one.'
 
     !githubToken?
+# integration-test/flux/environments/develop/tidepool-helmrelease.yaml
