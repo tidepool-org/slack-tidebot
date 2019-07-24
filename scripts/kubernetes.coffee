@@ -18,15 +18,27 @@
 #   you want hubot to interact with.
 #
 HubotSlack = require 'hubot-slack'
-
+eventActions = require('./all')
+eventTypesRaw = process.env['HUBOT_GITHUB_EVENT_NOTIFIER_TYPES']
+eventTypes = []
+announceRepoEvent = (adapter, data, eventType, cb) ->
+  if eventActions[eventType]?
+    eventActions[eventType](adapter, data, cb)
+  else
+    cb("Received a new #{eventType} event, just so you know.")
 module.exports = (robot) ->
     robot.router.get '/hubot/gh-repo-events', (req, res) ->
         room = github-events || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
-        data = if req.body.payload? then JSON.parse req.body.payload else req.body
-        comment = data.comment.body
-        console.log("#{comment}")
+        datas = if req.body.payload? then JSON.parse req.body.payload else req.body
+        comments = datas.comment.body
+        eventType = req.headers["x-github-event"]
+        adapter = robot.adapterName
+        console.log("#{comments}")
         console.log("fun")
-        res.send "#{comment}"
+        res.send "#{comments}"
+
+        announceRepoEvent adapter, datas, eventType, (what) ->
+          robot.messageRoom room, what
 
     # robot.hear /^.*?\/\bdeploy\b.*?([-_\.a-zA-z0-9]+)/, (res) ->
     #     res.send "this is a test to deploy #{res.match[1]}"
