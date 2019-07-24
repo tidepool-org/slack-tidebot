@@ -5,10 +5,12 @@
   "author": "Harold Bernard <harold@tidepool.org>",
   "description": "A simple helpful robot for TidePoolers",
   "dependencies": {
+    "dotenv": "^8.0.0",
     "express": "^4.17.1",
     "githubot": "^1.0.1",
     "hubot": "^3.3.2",
     "hubot-diagnostics": "^1.0.0",
+    "hubot-env": "0.0.2",
     "hubot-github-repo-event-notifier": "^1.8.1",
     "hubot-google-images": "^0.2.7",
     "hubot-google-translate": "^0.2.1",
