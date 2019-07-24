@@ -20,12 +20,12 @@
 HubotSlack = require 'hubot-slack'
 
 module.exports = (robot) ->
-    # robot.router.post '/hubot/gh-repo-events', (req, res) ->
-    #     room = github-events || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
-    #     data = if req.body.payload? then JSON.parse req.body.payload else req.body
-    #     comment = data.comment.body
-    #     console.log("#{comment}")
-    #     console.log("fun")
+    robot.router.post '/hubot/gh-repo-events', (req, res) ->
+        room = github-events || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
+        data = if req.body.payload? then JSON.parse req.body.payload else req.body
+        comment = data.comment.body
+        console.log("#{comment}")
+        console.log("fun")
 
     # robot.hear /^.*?\/\bdeploy\b.*?([-_\.a-zA-z0-9]+)/, (res) ->
     #     res.send "this is a test to deploy #{res.match[1]}"
