@@ -17,14 +17,21 @@
 #   The token will need to be made from a user that has access to repo(s)
 #   you want hubot to interact with.
 #
+HubotSlack = require 'hubot-slack'
 
 module.exports = (robot) ->
     # robot.router.post '/hubot/gh-repo-events?room=github-events', (req, res) ->
     #     room = req.params.room
     #     data = if req.body.payload? then JSON.parse req.body.payload else req.body
     #     comment = data.comment
-    robot.hear /^.*?\/\bdeploy\b.*?([-_\.a-zA-z0-9]+)/, (res) ->
-        res.send "this is a test to deploy #{res.match[1]}"
+    # robot.hear /^.*?\/\bdeploy\b.*?([-_\.a-zA-z0-9]+)/, (res) ->
+    #     res.send "this is a test to deploy #{res.match[1]}"
+        
+    robot.listen( 
+        (message) ->
+            match = message.match(/^.*?\/\bdeploy\b.*?([-_\.a-zA-z0-9]+)/)
+        (res) ->
+            res.reply "this is a test to deploy #{res.match[1]}")  
         # deploy = {
         #     message: "Deployed #{res.match[1]}",
         #     content: msg.match[3],
