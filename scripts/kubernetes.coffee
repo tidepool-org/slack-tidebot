@@ -35,13 +35,13 @@ module.exports = (robot) ->
     #         match = message.match(/^.*?\/\bdeploy\b.*?([-_\.a-zA-z0-9]+)/)
     #     (res) ->
     #         res.reply "this is a test to deploy #{res.match[1]}")  
-        deploy = {
-            message: "Deployed #{res.match[1]}",
-            content: msg.match[3],
-            sha: base,
-            body: msg.match[6] || 'PR for review',
-        }
-        github.post "repos/Tidepool-org/integration-test/contents/flux/environments/develop/tidepool-helmrelease.yaml", data, (deploy) ->
+        # deploy = {
+        #     message: "Deployed #{res.match[1]}",
+        #     content: msg.match[3],
+        #     sha: base,
+        #     body: msg.match[6] || 'PR for review',
+        # }
+        # github.post "repos/Tidepool-org/integration-test/contents/flux/environments/develop/tidepool-helmrelease.yaml", data, (deploy) ->
         
         
         # ^.*?\b\/deploy\b(.*?[-_\.0-9a-zA-Z].*)?$
