@@ -10,15 +10,9 @@
 #   HUBOT_GITHUB_TOKEN (see https://github.com/iangreenleaf/githubot)
 #
 # Commands:
-#   tidebot create pr from <Tidepool-org>/<repo>/<branch> into <base> for <reviewer_username> to review "<body>"
+#   /depoly <place to be deployed> comment on pr
 #
 # Notes:
-# repo (required): Repository where your branch exists.
-# branch (required): Name of branch.
-# base (optional): Name of branch you would like to request to merge into. Master by default.
-# body (optional): Message to create with pull request. Empty by default.
-#   By default, the target branch will be master and the body empty.
-#
 #   You will need to create and set HUBOT_GITHUB_TOKEN.
 #   The token will need to be made from a user that has access to repo(s)
 #   you want hubot to interact with.
@@ -29,5 +23,16 @@ module.exports = (robot) ->
     #     room = req.params.room
     #     data = if req.body.payload? then JSON.parse req.body.payload else req.body
     #     comment = data.comment
-    robot.hear /(?=/deploy+)/(?=qa1)/, (res) ->
-        res.send "this may not work"
+    robot.hear /^.*?\/\bdeploy\b.*?([-_\.a-zA-z0-9]+)/, (res) ->
+        res.send "this is a test to deploy #{res.match[1]}"
+        # deploy = {
+        #     message: "Deployed #{res.match[1]}",
+        #     content: msg.match[3],
+        #     sha: base,
+        #     body: msg.match[6] || 'PR for review',
+        # }
+        # github.post "repos/Tidepool-org/integration-test/contents/flux/environments/develop/tidepool-helmrelease.yaml", data, (deploy) ->
+        
+        
+        # ^.*?\b\/deploy\b(.*?[-_\.0-9a-zA-Z].*)?$
+        # ^.*?\/\bdeploy\b.*?([-_\.a-zA-z0-9]+) add a $ at end if you want the last word captured
