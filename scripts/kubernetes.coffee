@@ -30,6 +30,15 @@ announceRepoEvent = (adapter, data, eventType, cb) ->
     cb("Received a new #{eventType} event, just so you know.")
 module.exports = (robot) ->
     robot.router.get '/hubot/gh-repo-events', (req, res) ->
+        query = querystring.parse(url.parse(req.url).query)
+        room = query.room || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
+        datas = req.body
+        comments = datas.comment.body
+        eventType = req.headers["x-github-event"]
+        adapter = robot.adapterName
+        console.log("#{comments}")
+        console.log("fun")
+        res.send "#{comments}"
         robot.router.post '/hubot/gh-repo-events?room=github-events', (req, res) ->
             query = querystring.parse(url.parse(req.url).query)
             room = query.room || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
