@@ -29,7 +29,7 @@
 module.exports = (robot) ->
     robot.router.post '/hubot/gt-repo-events', (req, res) ->
         room = github-events || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
-        datas = if req.body.payload? then JSON.parse req.body.payload else req.body
+        datas = req.body
         comments = datas.comment.body
         eventType = req.headers["x-github-event"]
         adapter = robot.adapterName
