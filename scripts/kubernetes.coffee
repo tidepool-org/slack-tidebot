@@ -27,7 +27,7 @@
 #   else
 #     cb("Received a new #{eventType} event, just so you know.")
 module.exports = (robot) ->
-    robot.router.post '/hubot/gt-repo-events', (req, res) ->
+    robot.router.use '/hubot/gh-repo-events', (req, res) ->
         room = github-events || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
         datas = req.body
         comments = datas.comment.body
