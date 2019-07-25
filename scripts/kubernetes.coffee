@@ -17,17 +17,17 @@
 #   The token will need to be made from a user that has access to repo(s)
 #   you want hubot to interact with.
 #
-HubotSlack = require 'hubot-slack'
-eventActions = require('./all')
-eventTypesRaw = process.env['HUBOT_GITHUB_EVENT_NOTIFIER_TYPES']
-eventTypes = []
-announceRepoEvent = (adapter, data, eventType, cb) ->
-  if eventActions[eventType]?
-    eventActions[eventType](adapter, data, cb)
-  else
-    cb("Received a new #{eventType} event, just so you know.")
+# HubotSlack = require 'hubot-slack'
+# eventActions = require('./all')
+# eventTypesRaw = process.env['HUBOT_GITHUB_EVENT_NOTIFIER_TYPES']
+# eventTypes = []
+# announceRepoEvent = (adapter, data, eventType, cb) ->
+#   if eventActions[eventType]?
+#     eventActions[eventType](adapter, data, cb)
+#   else
+#     cb("Received a new #{eventType} event, just so you know.")
 module.exports = (robot) ->
-    robot.router.post '/hubot/gh-repo-events', (req, res) ->
+    robot.router.post '/hubot/gt-repo-events', (req, res) ->
         room = github-events || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
         datas = if req.body.payload? then JSON.parse req.body.payload else req.body
         comments = datas.comment.body
