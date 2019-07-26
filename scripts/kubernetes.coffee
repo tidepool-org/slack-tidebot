@@ -35,7 +35,7 @@ module.exports = (robot) ->
 
         announceRepoEvent adapter, datas, eventType, (what) ->
           robot.messageRoom room, what
-        res.send "OK amigo"
+        res.send "#{comments}"
 
 announceRepoEvent = (adapter, datas, eventType, cb) ->
   if eventActions[eventType]?
