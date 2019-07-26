@@ -33,15 +33,15 @@ module.exports = (robot) ->
         console.log("fun")
         # res.send "#{comments}"
 
-        announceRepoEvent adapter, datas, eventType, (what) ->
-          robot.messageRoom room, what
+        # announceRepoEvent adapter, datas, eventType, (what) ->
+        robot.messageRoom room, "#{comments}"
         res.send "#{comments}"
 
-announceRepoEvent = (adapter, datas, eventType, cb) ->
-  if eventActions[eventType]?
-    eventActions[eventType](adapter, datas, cb)
-  else
-    cb("Received a new #{eventType} event, just so you know.")
+# announceRepoEvent = (adapter, datas, eventType, cb) ->
+#   if eventActions[eventType]?
+#     eventActions[eventType](adapter, datas, cb)
+#   else
+#     cb("Received a new #{eventType} event, just so you know.")
     # robot.hear /^.*?\/\bdeploy\b.*?([-_\.a-zA-z0-9]+)/, (res) ->
     #     res.send "this is a test to deploy #{res.match[1]}"
         
