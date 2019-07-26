@@ -23,7 +23,7 @@ eventTypesRaw = process.env['HUBOT_GITHUB_EVENT_NOTIFIER_TYPES']
 eventTypes = []
 announceRepoEvent = (adapter, datas, eventType, cb) ->
   if eventActions[eventType]?
-    eventActions[eventType](adapter, data, cb)
+    eventActions[eventType](adapter, datas, cb)
   else
     cb("Received a new #{eventType} event, just so you know.")
 module.exports = (robot) ->
