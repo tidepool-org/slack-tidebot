@@ -10,32 +10,68 @@
 #   HUBOT_GITHUB_TOKEN (see https://github.com/iangreenleaf/githubot)
 #
 # Commands:
-#   /depoly <place to be deployed> comment on pr
+#   /depoly <repo> comment on pr
 #
 # Notes:
 #   You will need to create and set HUBOT_GITHUB_TOKEN.
 #   The token will need to be made from a user that has access to repo(s)
 #   you want hubot to interact with.
 #
-HubotSlack = require 'hubot-slack'
+# do we want to allow this script to deploy to production
+YAML = require('yaml')
+HubotSlack = require('hubot-slack')
 eventActions = require('./all')
 eventTypesRaw = process.env['HUBOT_GITHUB_EVENT_NOTIFIER_TYPES']
 eventTypes = []
-
+environmentToRepoMap = {
+    "qa1": "cluster-development",
+    "qa2": "cluster-development",
+    "int": "cluster-integration",
+    "prd": "cluster-production"
+}
+environmentToEnv = {
+    "dev": "qa1",
+    "stg": "qa2",
+    "int": "cluster-integration",
+    "prd": "cluster-production"
+}
 module.exports = (robot) ->
     robot.router.post '/hubot/gh-repo-events', (req, res) ->
         room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
         datas = req.body
         comments = datas.comment.body
+        repository = datas.repository.name
+        branches = datas.issue.pull_request.url
+        branch = github.get branches.split(".com") (branch) ->
+            return branch.head.ref
         eventType = req.headers["x-github-event"]
         adapter = robot.adapterName
         console.log("#{comments}")
         console.log("fun")
-        # res.send "#{comments}"
-
+        matches = matching(comments)
+        deployContents = github.get "repos/Tidepool-org/#{configRepo}/contents/flux/environments/#{configEnv}/tidepool-helmrelease.yaml" (ref) -> 
+            return YAML.parse(ref)
+        deploy = {
+            message: "Deployed #{configRepo}",
+            content: ,
+            sha: github.get "repos/Tidepool-org/#{configRepo}/contents/flux/environments/#{configEnv}/tidepool-helmrelease.yaml" (ref) ->
+                return YAML.parse(ref.sha)
+        }
         # announceRepoEvent adapter, datas, eventType, (what) ->
+        # finish = switch match[1]
+        #     when "qa1" then statements
+        #     when "prd" then statements
+        #     when "develop-branch" then statements
+        #     when "qa2" then statements
+        #     when "release-branch" then statements
+        #     when "ci-{date-random}" then statements
+        #     when "external" then statements
+        #     when "staging" then statements
+        #     when "chartmuseum" then statements
+        #     when "thanos" then statements
+        #     else statements
         robot.messageRoom room, "#{comments}"
-        res.send "#{comments}"
+        res.send "#{deployContents}"
 
 # announceRepoEvent = (adapter, datas, eventType, cb) ->
 #   if eventActions[eventType]?
@@ -56,8 +92,15 @@ module.exports = (robot) ->
         #     sha: base,
         #     body: msg.match[6] || 'PR for review',
         # }
-        # github.post "repos/Tidepool-org/integration-test/contents/flux/environments/develop/tidepool-helmrelease.yaml", data, (deploy) ->
+        # github.post "repos/Tidepool-org/integration-test/contents/flux/environments/develop/tidepool-helmrelease.yaml", deploy, (change) ->
         
         
         # ^.*?\b\/deploy\b(.*?[-_\.0-9a-zA-Z].*)?$
         # ^.*?\/\bdeploy\b.*?([-_\.a-zA-z0-9]+) add a $ at end if you want the last word captured
+
+    function matching (comments) ->
+        match = comments.match(/^.*?\/\bdeploy\s+([-_\.a-zA-z0-9]+)\s*([-_\.a-zA-z0-9\/]+)?/)
+        return {
+            configRepo: match[1],
+            configEnv: match[2]
+        }
