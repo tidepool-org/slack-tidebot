@@ -45,14 +45,6 @@ module.exports = (robot) ->
                 Repo: match[1],
                 Env: match[2]
             }
-        githubManifest = (config) -> 
-            # console.log(config)
-            github.get "repos/tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
-                x = ref
-                console.log(x)
-                return x
-
-
         room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
         datas = req.body
         comments = datas.comment.body
@@ -69,9 +61,13 @@ module.exports = (robot) ->
         console.log("#{comments}")
         console.log("fun")
         config = prCommentEnvExtractor(comments)
+        githubManifest = github.get "repos/tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
+            x = ref
+            console.log(x)
+            return x
         console.log(config.Repo)
         console.log(config.Env)
-        manifest = githubManifest(config)
+        manifest = githubManifest
         console.log(manifest)
         deploy = {
             message: "Deployed #{config.Repo}",
