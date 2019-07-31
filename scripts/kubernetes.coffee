@@ -45,7 +45,7 @@ module.exports = (robot) ->
                 Repo: match[1],
                 Env: match[2]
             }
-        githubManifest = () -> 
+        githubManifest = (config) -> 
             console.log('test')
         .then (config) ->
             github.get "repos/tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
