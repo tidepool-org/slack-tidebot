@@ -72,15 +72,19 @@ module.exports = (robot) ->
                 console.log(yamlFileParsed)
                 console.log("yamlFileParsed")
                 repoDestination = "flux.weave.works/tag." + serviceRepo
-                dockerImageFilter = "glob:" + serviceBranch + "-*'"
+                dockerImageFilter = "glob:" + serviceBranch + "-*"
                 yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
                 console.log(yamlFileParsed)
                 console.log("UPDATED YAML FILE PARSED")
+                newYamlFileUpdated = YAML.stringify(yamlFileParsed)
+                newYamlFileEncoded = Base64.encode(newYamlFileUpdated)
                 deploy = {
                     message: "Deployed #{config.Repo}",
-                    content: yamlFileParsed,
+                    content: newYamlFileEncoded,
                     sha: ref.sha
                 }
+                github.put "repos/tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", deploy, (ref) ->
+                    res.send "OK"
             # announceRepoEvent adapter, datas, eventType, (what) ->
             # finish = switch match[1]
             #     when "qa1" then statements
