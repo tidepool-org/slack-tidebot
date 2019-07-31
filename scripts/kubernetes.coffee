@@ -37,6 +37,7 @@ environmentToEnv = {
 }
 module.exports = (robot) ->
     robot.router.post '/hubot/gh-repo-events', (req, res) ->
+        github = require('githubot')(robot)
         room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
         datas = req.body
         comments = datas.comment.body
