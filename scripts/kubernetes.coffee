@@ -44,19 +44,21 @@ module.exports = (robot) ->
                 Repo: match[1],
                 Env: match[2]
             }
-        # githubManifest = (config) -> 
-        #     x=0
-        #     github.get "repos/tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
-        #         console.log(ref)
-        #         x=0
-        #         (ref)
+        githubManifest = (config) -> 
+            x=0
+            github.get "repos/tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
+                x=ref
+            x
         room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
         datas = req.body
         comments = datas.comment.body
         repository = datas.repository.name
         branches = datas.issue.pull_request.url
-        branch = github.get branches, (branch) ->
-            branch.head.ref
+        branch = (branches) ->
+            x=0
+            github.get branches, (branch) ->
+                x=branch
+            x.head.ref
         console.log(branch)
         eventType = req.headers["x-github-event"]
         adapter = robot.adapterName
@@ -65,13 +67,13 @@ module.exports = (robot) ->
         config = prCommentEnvExtractor(comments)
         console.log(config.Repo)
         console.log(config.Env)
-        # manifest = githubManifest(config)
-        # console.log(manifest)
-        # deploy = {
-        #     message: "Deployed #{config.Repo}",
-        #     content: manifest.content,
-        #     sha: manifest.sha
-        # }
+        manifest = githubManifest(config)
+        console.log(manifest)
+        deploy = {
+            message: "Deployed #{config.Repo}",
+            content: manifest.content,
+            sha: manifest.sha
+        }
         # announceRepoEvent adapter, datas, eventType, (what) ->
         # finish = switch match[1]
         #     when "qa1" then statements
