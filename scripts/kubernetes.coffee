@@ -48,6 +48,7 @@ module.exports = (robot) ->
             x=0
             githubFile = github.get "repos/tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
                 console.log(ref)
+                x=0
                 (ref)
         room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
         datas = req.body
