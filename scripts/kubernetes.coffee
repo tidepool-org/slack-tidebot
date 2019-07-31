@@ -72,7 +72,7 @@ module.exports = (robot) ->
         console.log(manifest)
         deploy = {
             message: "Deployed #{config.Repo}",
-            content: Base64.encode(manifest.content),
+            content: Base64.decode(manifest.content),
             sha: manifest.sha
         }
         # announceRepoEvent adapter, datas, eventType, (what) ->
