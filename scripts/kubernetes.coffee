@@ -70,6 +70,7 @@ module.exports = (robot) ->
             yamlFileDecoded = Base64.decode(ref.content)
             yamlFileParsed = YAML.parse(yamlFileDecoded)
             console.log(yamlFileParsed)
+            console.log("yamlFileParsed")
             deploy = {
                 message: "Deployed #{config.Repo}",
                 content: yamlFileParsed,
