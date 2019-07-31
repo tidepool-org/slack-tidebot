@@ -67,11 +67,11 @@ module.exports = (robot) ->
             return x
         console.log(config.Repo)
         console.log(config.Env)
-        manifest = githubManifest
-        console.log(manifest)
+        # manifest = githubManifest
+        console.log(githubManifest)
         deploy = {
             message: "Deployed #{config.Repo}",
-            content: Base64.decode(manifest.content),
+            content: Base64.decode(githubManifest.content),
             sha: manifest.sha
         }
         # announceRepoEvent adapter, datas, eventType, (what) ->
