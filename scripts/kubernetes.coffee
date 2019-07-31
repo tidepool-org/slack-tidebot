@@ -43,19 +43,17 @@ module.exports = (robot) ->
         repository = datas.repository.name
         branches = datas.issue.pull_request.url
         branch = github.get branches.split(".com") (branch) ->
-            return branch.head.ref
+            branch.head.ref
         eventType = req.headers["x-github-event"]
         adapter = robot.adapterName
         console.log("#{comments}")
         console.log("fun")
-        matches = matching(comments)
-        deployContents = github.get "repos/Tidepool-org/#{configRepo}/contents/flux/environments/#{configEnv}/tidepool-helmrelease.yaml" (ref) -> 
-            return YAML.parse(ref)
+        config = prCommentEnvExtractor(comments)
+        manifest = githubManifest(config)
         deploy = {
             message: "Deployed #{configRepo}",
-            content: ,
-            sha: github.get "repos/Tidepool-org/#{configRepo}/contents/flux/environments/#{configEnv}/tidepool-helmrelease.yaml" (ref) ->
-                return YAML.parse(ref.sha)
+            content: manifest.content,
+            sha: manifest.sha
         }
         # announceRepoEvent adapter, datas, eventType, (what) ->
         # finish = switch match[1]
@@ -71,7 +69,7 @@ module.exports = (robot) ->
         #     when "thanos" then statements
         #     else statements
         robot.messageRoom room, "#{comments}"
-        res.send "#{deployContents}"
+        res.send "#{manifest}"
 
 # announceRepoEvent = (adapter, datas, eventType, cb) ->
 #   if eventActions[eventType]?
@@ -97,10 +95,12 @@ module.exports = (robot) ->
         
         # ^.*?\b\/deploy\b(.*?[-_\.0-9a-zA-Z].*)?$
         # ^.*?\/\bdeploy\b.*?([-_\.a-zA-z0-9]+) add a $ at end if you want the last word captured
-
-    function matching (comments) ->
-        match = comments.match(/^.*?\/\bdeploy\s+([-_\.a-zA-z0-9]+)\s*([-_\.a-zA-z0-9\/]+)?/)
-        return {
-            configRepo: match[1],
-            configEnv: match[2]
-        }
+# function that takes users pr comment and extracts the Repo and Environment
+prCommentEnvExtractor = (comments) ->
+    match = comments.match(/^.*?\/\bdeploy\s+([-_\.a-zA-z0-9]+)\s*([-_\.a-zA-z0-9\/]+)?/)
+    {
+        Repo: match[1],
+        Env: match[2]
+    }
+githubManifest = (config) -> github.get "repos/Tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml" (ref) -> 
+    YAML.parse(ref)
