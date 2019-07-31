@@ -48,8 +48,8 @@ module.exports = (robot) ->
         githubManifest = (config) -> 
             xr = "fun"
             github.get "repos/tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
-                x = ref
-            x
+                x = (ref)
+                x
         room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
         datas = req.body
         comments = datas.comment.body
