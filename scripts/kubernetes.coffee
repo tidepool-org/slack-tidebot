@@ -36,8 +36,8 @@ environmentToEnv = {
     "prd": "cluster-production"
 }
 module.exports = (robot) ->
+    github = require('githubot')(robot)
     robot.router.post '/hubot/gh-repo-events', (req, res) ->
-        github = require('githubot')(robot)
         prCommentEnvExtractor = (comments) ->
             match = comments.match(/^.*?\/\bdeploy\s+([-_\.a-zA-z0-9]+)\s*([-_\.a-zA-z0-9\/]+)?/)
             {
@@ -46,7 +46,7 @@ module.exports = (robot) ->
             }
         githubManifest = (config) -> 
             github.get "repos/tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
-                ref.content
+                YAML.parse(ref)
         room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
         datas = req.body
         comments = datas.comment.body
