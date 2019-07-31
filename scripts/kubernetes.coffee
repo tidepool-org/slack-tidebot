@@ -69,7 +69,7 @@ module.exports = (robot) ->
             deploy = {
                 message: "Deployed #{config.Repo}",
                 content: Base64.decode(ref.content),
-                sha: manifest.sha
+                sha: ref.sha
             }
         # announceRepoEvent adapter, datas, eventType, (what) ->
         # finish = switch match[1]
