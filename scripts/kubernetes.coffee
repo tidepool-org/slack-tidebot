@@ -73,7 +73,7 @@ module.exports = (robot) ->
                 console.log("yamlFileParsed")
                 repoDestination = "flux.weave.works/tag." + serviceRepo
                 dockerImageFilter = "glob:" + serviceBranch + "-*'"
-                yamlFileParsed.annotations[repoDestination] = dockerImageFilter
+                yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
                 console.log(yamlFileParsed)
                 console.log("UPDATED YAML FILE PARSED")
                 deploy = {
