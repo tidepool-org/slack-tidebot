@@ -51,12 +51,11 @@ module.exports = (robot) ->
         comments = datas.comment.body
         repository = datas.repository.name
         branches = datas.issue.pull_request.url
-        branch = (branches) ->
-            x=0
-            github.get branches, (branch) ->
-                x=branch
-            x.head.ref
-        console.log(branch)
+        
+        github.get branches, (branch) ->
+            branch.head.ref
+            console.log(branch)
+
         eventType = req.headers["x-github-event"]
         adapter = robot.adapterName
         console.log("#{comments}")
@@ -68,9 +67,12 @@ module.exports = (robot) ->
             console.log(config.Env)
             # manifest = githubManifest
             console.log(ref)
+            yamlFileDecoded = Base64.decode(ref.content)
+            yamlFileParsed = YAML.parse(yamlFileDecoded)
+            console.log(yamlFileParsed)
             deploy = {
                 message: "Deployed #{config.Repo}",
-                content: Base64.decode(ref.content),
+                content: yamlFileParsed,
                 sha: ref.sha
             }
         # announceRepoEvent adapter, datas, eventType, (what) ->
