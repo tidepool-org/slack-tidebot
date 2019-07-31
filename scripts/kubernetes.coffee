@@ -69,7 +69,7 @@ module.exports = (robot) ->
         #     when "thanos" then statements
         #     else statements
         robot.messageRoom room, "#{comments}"
-        res.send "#{manifest}"
+        res.send "#{comments}"
 
 # announceRepoEvent = (adapter, datas, eventType, cb) ->
 #   if eventActions[eventType]?
