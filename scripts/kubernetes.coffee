@@ -102,5 +102,6 @@ prCommentEnvExtractor = (comments) ->
         Repo: match[1],
         Env: match[2]
     }
-githubManifest = (config) -> github.get "repos/Tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml" (ref) -> 
-    YAML.parse(ref)
+githubManifest = (config) -> 
+    github.get "repos/Tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
+        YAML.parse(ref)
