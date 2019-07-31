@@ -52,7 +52,7 @@ module.exports = (robot) ->
         comments = datas.comment.body
         repository = datas.repository.name
         branches = datas.issue.pull_request.url
-        branch = github.get branches.split(".com").pop() (branch) ->
+        branch = github.get branches, (branch) ->
             branch.head.ref
         eventType = req.headers["x-github-event"]
         adapter = robot.adapterName
