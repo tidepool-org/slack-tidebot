@@ -38,6 +38,7 @@ environmentToEnv = {
 }
 module.exports = (robot) ->
     github = require('githubot')(robot)
+    
     robot.router.post '/hubot/gh-repo-events', (req, res) ->
         prCommentEnvExtractor = (comments) ->
             match = comments.match(/^.*?\/\bdeploy\s+([-_\.a-zA-z0-9]+)\s*([-_\.a-zA-z0-9\/]+)?/)
@@ -61,6 +62,7 @@ module.exports = (robot) ->
         console.log("#{comments}")
         console.log("fun")
         config = prCommentEnvExtractor(comments)
+        
         github.get "repos/tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
             console.log(config.Repo)
             console.log(config.Env)
@@ -85,6 +87,7 @@ module.exports = (robot) ->
         #     when "thanos" then statements
         #     else statements
             robot.messageRoom room, "#{deploy.sha}"
+            robot.messageRoom room, "#{deploy.content}"
             # res.send "#{ref.deploy.content}"
         robot.messageRoom room, "#{comments}"
         res.send "#{comments}"
