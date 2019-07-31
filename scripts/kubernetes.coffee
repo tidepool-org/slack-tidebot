@@ -84,7 +84,7 @@ module.exports = (robot) ->
         #     when "chartmuseum" then statements
         #     when "thanos" then statements
         #     else statements
-            robot.messageRoom room, "#{ref.deploy.sha}"
+            robot.messageRoom room, "#{deploy.sha}"
             # res.send "#{ref.deploy.content}"
         robot.messageRoom room, "#{comments}"
         res.send "#{comments}"
