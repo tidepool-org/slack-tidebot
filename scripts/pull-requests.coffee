@@ -55,7 +55,7 @@ module.exports = (robot) ->
     github.post "repos/#{msg.match[1]}/#{msg.match[2]}/pulls", data, (pr) ->
       msg.send "Success! Pull request created for #{msg.match[3]}. #{pr.html_url}"
     #   github.post "repos/Tidepool-org/integration-test/contents/flux/environments/develop/tidepool-helmrelease.yaml"
-      github.post "repos/#{msg.match[1]}/#{msg.match[2]}/pulls/#{pr.number}/requested_reviewers", reviewers, (test) ->
+    github.post "repos/#{msg.match[1]}/#{msg.match[2]}/pulls/#{pr.number}/requested_reviewers", reviewers, (test) ->
       msg.send test.html test.requested_reviewers[0].login
   missingEnv = (msg) ->
     unless githubToken?
