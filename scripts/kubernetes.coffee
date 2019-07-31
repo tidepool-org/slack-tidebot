@@ -46,7 +46,7 @@ module.exports = (robot) ->
             }
         githubManifest = (config) -> 
             x=0
-            githubFile = github.get "repos/tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
+            github.get "repos/tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
                 console.log(ref)
                 x=0
                 (ref)
