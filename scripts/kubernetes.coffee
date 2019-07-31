@@ -61,14 +61,14 @@ module.exports = (robot) ->
         console.log("#{comments}")
         console.log("fun")
         config = prCommentEnvExtractor(comments)
-        githubManifest = github.get "repos/tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
+        github.get "repos/tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
             console.log(config.Repo)
             console.log(config.Env)
             # manifest = githubManifest
-            console.log(githubManifest)
+            console.log(ref)
             deploy = {
                 message: "Deployed #{config.Repo}",
-                content: Base64.decode(githubManifest.content),
+                content: Base64.decode(ref.content),
                 sha: manifest.sha
             }
         # announceRepoEvent adapter, datas, eventType, (what) ->
@@ -84,8 +84,10 @@ module.exports = (robot) ->
         #     when "chartmuseum" then statements
         #     when "thanos" then statements
         #     else statements
-        robot.messageRoom room, "#{githubManifest.deploy.sha}"
-        res.send "#{githubManifest.deploy.content}"
+            robot.messageRoom room, "#{ref.deploy.sha}"
+            # res.send "#{ref.deploy.content}"
+        robot.messageRoom room, "#{comments}"
+        res.send "#{comments}"
 
 # announceRepoEvent = (adapter, datas, eventType, cb) ->
 #   if eventActions[eventType]?
