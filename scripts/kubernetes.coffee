@@ -59,6 +59,8 @@ module.exports = (robot) ->
         console.log("#{comments}")
         console.log("fun")
         config = prCommentEnvExtractor(comments)
+        console.log(config.Repo)
+        console.log(config.Env)
         manifest = githubManifest(config)
         console.log(manifest)
         deploy = {
