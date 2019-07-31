@@ -38,15 +38,15 @@ environmentToEnv = {
 module.exports = (robot) ->
     robot.router.post '/hubot/gh-repo-events', (req, res) ->
         github = require('githubot')(robot)
-    prCommentEnvExtractor = (comments) ->
-        match = comments.match(/^.*?\/\bdeploy\s+([-_\.a-zA-z0-9]+)\s*([-_\.a-zA-z0-9\/]+)?/)
-        {
-            Repo: match[1],
-            Env: match[2]
-        }
-    githubManifest = (config) -> 
-        github.get "repos/Tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
-            YAML.parse(ref)
+        prCommentEnvExtractor = (comments) ->
+            match = comments.match(/^.*?\/\bdeploy\s+([-_\.a-zA-z0-9]+)\s*([-_\.a-zA-z0-9\/]+)?/)
+            {
+                Repo: match[1],
+                Env: match[2]
+            }
+        githubManifest = (config) -> 
+            github.get "repos/Tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
+                YAML.parse(ref)
         room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
         datas = req.body
         comments = datas.comment.body
