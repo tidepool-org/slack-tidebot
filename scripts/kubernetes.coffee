@@ -45,7 +45,7 @@ module.exports = (robot) ->
                 Env: match[2]
             }
         githubManifest = (config) -> 
-            github.get "repos/Tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
+            github.get "repos/tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
                 YAML.parse(ref)
         room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
         datas = req.body
