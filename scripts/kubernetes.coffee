@@ -88,7 +88,7 @@ module.exports = (robot) ->
         #     when "chartmuseum" then statements
         #     when "thanos" then statements
         #     else statements
-        robot.messageRoom room, "#{deploy.content}"
+        robot.messageRoom room, "#{deploy.sha}"
         res.send "#{deploy.content}"
 
 # announceRepoEvent = (adapter, datas, eventType, cb) ->
