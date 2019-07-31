@@ -22,6 +22,7 @@ YAML = require('yaml')
 HubotSlack = require('hubot-slack')
 eventActions = require('./all')
 eventTypesRaw = process.env['HUBOT_GITHUB_EVENT_NOTIFIER_TYPES']
+Base64 = require('js-base64').Base64;
 eventTypes = []
 environmentToRepoMap = {
     "qa1": "cluster-development",
@@ -71,7 +72,7 @@ module.exports = (robot) ->
         console.log(manifest)
         deploy = {
             message: "Deployed #{config.Repo}",
-            content: manifest.content,
+            content: Base64.encode(manifest.content),
             sha: manifest.sha
         }
         # announceRepoEvent adapter, datas, eventType, (what) ->
@@ -88,7 +89,7 @@ module.exports = (robot) ->
         #     when "thanos" then statements
         #     else statements
         robot.messageRoom room, "#{comments}"
-        res.send "#{comments}"
+        res.send "#{deploy.content}"
 
 # announceRepoEvent = (adapter, datas, eventType, cb) ->
 #   if eventActions[eventType]?
