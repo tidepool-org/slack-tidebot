@@ -49,49 +49,54 @@ module.exports = (robot) ->
         room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
         datas = req.body
         comments = datas.comment.body
-        repository = datas.repository.name
+        serviceRepo = datas.repository.name
         branches = datas.issue.pull_request.url
         
         github.get branches, (branch) ->
-            branch.head.ref
+            serviceBranch = branch.head.ref
             console.log(branch)
 
-        eventType = req.headers["x-github-event"]
-        adapter = robot.adapterName
-        console.log("#{comments}")
-        console.log("fun")
-        config = prCommentEnvExtractor(comments)
-        
-        github.get "repos/tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
-            console.log(config.Repo)
-            console.log(config.Env)
-            # manifest = githubManifest
-            console.log(ref)
-            yamlFileDecoded = Base64.decode(ref.content)
-            yamlFileParsed = YAML.parse(yamlFileDecoded)
-            console.log(yamlFileParsed)
-            console.log("yamlFileParsed")
-            deploy = {
-                message: "Deployed #{config.Repo}",
-                content: yamlFileParsed,
-                sha: ref.sha
-            }
-        # announceRepoEvent adapter, datas, eventType, (what) ->
-        # finish = switch match[1]
-        #     when "qa1" then statements
-        #     when "prd" then statements
-        #     when "develop-branch" then statements
-        #     when "qa2" then statements
-        #     when "release-branch" then statements
-        #     when "ci-{date-random}" then statements
-        #     when "external" then statements
-        #     when "staging" then statements
-        #     when "chartmuseum" then statements
-        #     when "thanos" then statements
-        #     else statements
-            robot.messageRoom room, "#{deploy.sha}"
-            robot.messageRoom room, "#{deploy.content}"
-            # res.send "#{ref.deploy.content}"
+            eventType = req.headers["x-github-event"]
+            adapter = robot.adapterName
+            console.log("#{comments}")
+            console.log("fun")
+            config = prCommentEnvExtractor(comments)
+            
+            github.get "repos/tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
+                console.log(config.Repo)
+                console.log(config.Env)
+                # manifest = githubManifest
+                console.log(ref)
+                yamlFileDecoded = Base64.decode(ref.content)
+                yamlFileParsed = YAML.parse(yamlFileDecoded)
+                console.log(yamlFileParsed)
+                console.log("yamlFileParsed")
+                repoDestination = "flux.weave.works/tag." + serviceRepo
+                dockerImageFilter = "glob:" + serviceBranch + "-*'"
+                yamlFileParsed.annotations[repoDestination] = dockerImageFilter
+                console.log(yamlFileParsed)
+                console.log("UPDATED YAML FILE PARSED")
+                deploy = {
+                    message: "Deployed #{config.Repo}",
+                    content: yamlFileParsed,
+                    sha: ref.sha
+                }
+            # announceRepoEvent adapter, datas, eventType, (what) ->
+            # finish = switch match[1]
+            #     when "qa1" then statements
+            #     when "prd" then statements
+            #     when "develop-branch" then statements
+            #     when "qa2" then statements
+            #     when "release-branch" then statements
+            #     when "ci-{date-random}" then statements
+            #     when "external" then statements
+            #     when "staging" then statements
+            #     when "chartmuseum" then statements
+            #     when "thanos" then statements
+            #     else statements
+                robot.messageRoom room, "#{deploy.sha}"
+                robot.messageRoom room, "#{deploy.content}"
+                # res.send "#{ref.deploy.content}"
         robot.messageRoom room, "#{comments}"
         res.send "#{comments}"
 
