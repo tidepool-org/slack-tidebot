@@ -45,7 +45,8 @@ module.exports = (robot) ->
                 Repo: match[1],
                 Env: match[2]
             }
-        githubManifest = (config) -> 
+        githubManifest = (config) ->
+            x
             github.get "repos/tidepool-org/#{config.Repo}/contents/flux/environments/#{config.Env}/tidepool-helmrelease.yaml", (ref) -> 
                 x=ref
             x
@@ -55,6 +56,7 @@ module.exports = (robot) ->
         repository = datas.repository.name
         branches = datas.issue.pull_request.url
         branch = (branches) ->
+            x
             github.get branches, (branch) ->
                 x=branch
             x.head.ref
