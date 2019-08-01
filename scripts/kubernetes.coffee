@@ -76,5 +76,6 @@ module.exports = (robot) ->
                     res.send "OK"
             
                 robot.messageRoom room, "#{deploy.message}"
-        res.send "#{deploy.message}"
+                res.send "#{deploy.message}"
+        res.send "OK"
 
