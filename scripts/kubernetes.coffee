@@ -27,7 +27,8 @@ environmentToRepoMap = {
     "qa1": "cluster-development",
     "qa2": "cluster-development",
     "int": "cluster-integration",
-    "prd": "cluster-production"
+    "prd": "cluster-production",
+    "test": "integration-test"
 }
 environmentToEnv = {
     "dev": "qa1",
@@ -40,22 +41,25 @@ module.exports = (robot) ->
     
     robot.router.post '/hubot/gh-repo-events', (req, res) ->
     # function that takes users pr comment and extracts the Repo and Environment
-        prCommentEnvExtractor = (comments) ->
-            match = comments.match(/^.*?\/\bdeploy\s+([-_\.a-zA-z0-9]+)\s*?/)
-            {
-                Repo: environmentToRepoMap[match[1]],
-                Env: match[1]
-            }
         room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
         datas = req.body
         comments = datas.comment.body
         sender = datas.sender.login
         serviceRepo = datas.repository.name
         branches = datas.issue.pull_request.url
-        
         github.get branches, (branch) ->
+            prCommentEnvExtractor = (comments) ->
+                match = comments.match(/^.*?\/\bdeploy\s+([-_\.a-zA-z0-9]+)\s*?/)
+                {
+                    Env: match[1]
+                    Repo: environmentToRepoMap[match[1]],
+                }
             serviceBranch = branch.head.ref
             config = prCommentEnvExtractor(comments)
+            console.log(config.Repo)
+            console.log("config.repo")
+            console.log(config.Env)
+            console.log("config.repo")
             kubernetesGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/clusters/development/flux/environments/#{config.Env}/tidepool-helmrelease.yaml"
             
             github.get kubernetesGithubYamlFile, (ref) -> 
