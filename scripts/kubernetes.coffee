@@ -52,7 +52,8 @@ module.exports = (robot) ->
         sender = datas.sender.login
         serviceRepo = datas.repository.name
         branches = datas.issue.pull_request.url
-        
+        console.log(config.repo)
+        console.log("config.repo")
         github.get branches, (branch) ->
             serviceBranch = branch.head.ref
             config = prCommentEnvExtractor(comments)
