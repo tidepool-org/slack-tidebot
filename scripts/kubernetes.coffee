@@ -51,11 +51,11 @@ module.exports = (robot) ->
                 match = comments.match(/^.*?\/\bdeploy\s+([-_\.a-zA-z0-9]+)\s*?/)
                 {
                     Env: match[1]
-                    Repo: environmentToRepoMap[config.Env],
+                    Repo: environmentToRepoMap[match[1]],
                 }
             serviceBranch = branch.head.ref
             config = prCommentEnvExtractor(comments)
-            console.log(config.repo)
+            console.log(config.Repo)
             console.log("config.repo")
             console.log(config.Env)
             console.log("config.repo")
