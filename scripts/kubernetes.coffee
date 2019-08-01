@@ -27,7 +27,8 @@ environmentToRepoMap = {
     "qa1": "cluster-development",
     "qa2": "cluster-development",
     "int": "cluster-integration",
-    "prd": "cluster-production"
+    "prd": "cluster-production",
+    "test": "integration-test"
 }
 environmentToEnv = {
     "dev": "qa1",
