@@ -43,8 +43,8 @@ module.exports = (robot) ->
         prCommentEnvExtractor = (comments) ->
             match = comments.match(/^.*?\/\bdeploy\s+([-_\.a-zA-z0-9]+)\s*?/)
             {
-                Repo: environmentToRepoMap.match[1],
                 Env: match[1]
+                Repo: environmentToRepoMap[Env],
             }
         room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
         datas = req.body
