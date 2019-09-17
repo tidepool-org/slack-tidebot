@@ -44,7 +44,7 @@ module.exports = (robot) ->
         console.log("REQ>HEADERS")
         console.log(req.rawHeaders[9])
         datas = req.body
-        if req.headers == "ping"
+        if req.rawHeaders[9] == "ping"
             res.send "OK"
         else
             comments = datas.comment.body
