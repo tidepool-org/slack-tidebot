@@ -44,10 +44,10 @@ module.exports = (robot) ->
         console.log("REQ>HEADERS")
         console.log(req.rawHeaders[9])
         datas = req.body
-        if req.rawHeaders[9] == "ping"
-            res.send "OK"
-        else
-            comments = datas.comment.body
+        console.log(datas)
+        console.log("datas")
+        comments = datas.comment.body
+        if comments != "undefined"
             sender = datas.sender.login
             serviceRepo = datas.repository.name
             branches = datas.issue.pull_request.url
@@ -82,5 +82,9 @@ module.exports = (robot) ->
                 
                     robot.messageRoom room, "#{deploy.message}"
                     res.send "#{deploy.message}"
-        res.send "OK"
+            res.send "OK"
+        else
+           robot.messageRoom room, "#{deploy.message}"
+                    res.send "#{deploy.message}" 
+            res.send "OK"
 
