@@ -41,8 +41,10 @@ module.exports = (robot) ->
     
     robot.router.post '/hubot/gh-repo-events', (req, res) ->
         room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
-        console.log(req)
+        console.log("REQ>HEADERS")
+        console.log(req.headers)
         datas = req.body
+        # if req.headers
         comments = datas.comment.body
         sender = datas.sender.login
         serviceRepo = datas.repository.name
