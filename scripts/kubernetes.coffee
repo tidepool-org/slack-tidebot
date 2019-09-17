@@ -46,8 +46,8 @@ module.exports = (robot) ->
         datas = req.body
         console.log(datas)
         console.log("datas")
-        comments = datas.comment.body
-        if comments != "undefined"
+        if datas.comment != "undefined"
+            comments = datas.comment.body
             sender = datas.sender.login
             serviceRepo = datas.repository.name
             branches = datas.issue.pull_request.url
@@ -84,7 +84,5 @@ module.exports = (robot) ->
                     res.send "#{deploy.message}"
             res.send "OK"
         else
-            robot.messageRoom room, "#{datas}"
-            res.send "#{datas}" 
             res.send "OK"
 
