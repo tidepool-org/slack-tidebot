@@ -82,9 +82,9 @@ module.exports = (robot) ->
                 
                     robot.messageRoom room, "#{deploy.message}"
                     res.send "#{deploy.message}"
-        res.send "OK"
+            res.send "OK"
         else
             robot.messageRoom room, "#{datas}"
             res.send "#{datas}" 
-        res.send "OK"
+            res.send "OK"
 
