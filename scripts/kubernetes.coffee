@@ -46,6 +46,7 @@ module.exports = (robot) ->
         datas = req.body
         console.log(datas)
         console.log("datas")
+        console.log(datas.comment)
         if datas.comment == null
             res.send ("OK")
         else
