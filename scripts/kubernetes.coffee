@@ -42,43 +42,47 @@ module.exports = (robot) ->
     robot.router.post '/hubot/gh-repo-events', (req, res) ->
         room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
         console.log("REQ>HEADERS")
-        console.log(req.headers)
+        console.log(req.rawHeaders[9])
         datas = req.body
-        # if req.headers
-        comments = datas.comment.body
-        sender = datas.sender.login
-        serviceRepo = datas.repository.name
-        branches = datas.issue.pull_request.url
-        github.get branches, (branch) ->
-            # function that takes users pr comment and extracts the Repo and Environment
-            prCommentEnvExtractor = (comments) ->
-                match = comments.match(/^.*?\/\bdeploy\s+([-_\.a-zA-z0-9]+)\s*?/)
-                {
-                    Env: match[1]
-                    Repo: environmentToRepoMap[match[1]],
-                }
-            serviceBranch = branch.head.ref
-            config = prCommentEnvExtractor(comments)
-            kubernetesGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/clusters/development/flux/environments/#{config.Env}/tidepool-helmrelease.yaml"
-            
-            github.get kubernetesGithubYamlFile, (ref) -> 
-                yamlFileDecoded = Base64.decode(ref.content)
-                yamlFileParsed = YAML.parse(yamlFileDecoded)
-                repoDestination = "flux.weave.works/tag." + serviceRepo
-                dockerImageFilter = "glob:" + serviceBranch + "-*"
-                yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
-                newYamlFileUpdated = YAML.stringify(yamlFileParsed)
-                newYamlFileEncoded = Base64.encode(newYamlFileUpdated)
-                deploy = {
-                    message: "#{sender} deployed #{serviceRepo} to #{config.Env}",
-                    content: newYamlFileEncoded,
-                    sha: ref.sha
-                }
+        if req.rawHeaders[9] != "ping" {
+            comments = datas.comment.body
+            sender = datas.sender.login
+            serviceRepo = datas.repository.name
+            branches = datas.issue.pull_request.url
+            github.get branches, (branch) ->
+                # function that takes users pr comment and extracts the Repo and Environment
+                prCommentEnvExtractor = (comments) ->
+                    match = comments.match(/^.*?\/\bdeploy\s+([-_\.a-zA-z0-9]+)\s*?/)
+                    {
+                        Env: match[1]
+                        Repo: environmentToRepoMap[match[1]],
+                    }
+                serviceBranch = branch.head.ref
+                config = prCommentEnvExtractor(comments)
+                kubernetesGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/clusters/development/flux/environments/#{config.Env}/tidepool-helmrelease.yaml"
                 
-                github.put kubernetesGithubYamlFile, deploy, (ref) ->
-                    res.send "OK"
-            
-                robot.messageRoom room, "#{deploy.message}"
-                res.send "#{deploy.message}"
+                github.get kubernetesGithubYamlFile, (ref) -> 
+                    yamlFileDecoded = Base64.decode(ref.content)
+                    yamlFileParsed = YAML.parse(yamlFileDecoded)
+                    repoDestination = "flux.weave.works/tag." + serviceRepo
+                    dockerImageFilter = "glob:" + serviceBranch + "-*"
+                    yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
+                    newYamlFileUpdated = YAML.stringify(yamlFileParsed)
+                    newYamlFileEncoded = Base64.encode(newYamlFileUpdated)
+                    deploy = {
+                        message: "#{sender} deployed #{serviceRepo} to #{config.Env}",
+                        content: newYamlFileEncoded,
+                        sha: ref.sha
+                    }
+                    
+                    github.put kubernetesGithubYamlFile, deploy, (ref) ->
+                        res.send "OK"
+                
+                    robot.messageRoom room, "#{deploy.message}"
+                    res.send "#{deploy.message}"
         res.send "OK"
+        }
+        else {
+            res.send "OK"
+        }
 
