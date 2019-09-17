@@ -46,7 +46,9 @@ module.exports = (robot) ->
         datas = req.body
         console.log(datas)
         console.log("datas")
-        if datas.comment != "undefined"
+        if datas.comment == "undefined"
+            res.send ("OK")
+        else
             comments = datas.comment.body
             sender = datas.sender.login
             serviceRepo = datas.repository.name
@@ -82,7 +84,5 @@ module.exports = (robot) ->
                 
                     robot.messageRoom room, "#{deploy.message}"
                     res.send "#{deploy.message}"
-            res.send "OK"
-        else
             res.send "OK"
 
