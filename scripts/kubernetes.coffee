@@ -41,12 +41,7 @@ module.exports = (robot) ->
     
     robot.router.post '/hubot/gh-repo-events', (req, res) ->
         room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
-        console.log("REQ>HEADERS")
-        console.log(req.rawHeaders[9])
         datas = req.body
-        console.log(datas)
-        console.log("datas")
-        console.log(datas.comment)
         if datas.comment == undefined
             res.send ("OK")
         else
