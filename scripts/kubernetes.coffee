@@ -43,7 +43,6 @@ module.exports = (robot) ->
         room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
         datas = req.body
         if datas.comment == undefined
-            robot.messageRoom room, "hi"
             res.send ("OK")
         else
             comments = datas.comment.body
