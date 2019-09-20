@@ -8,7 +8,7 @@
 #   HUBOT_GITHUB_TOKEN (see https://github.com/iangreenleaf/githubot)
 #
 # Commands:
-#   tidebot create pr from <Tidepool-org>/<repo>/<branch> into <base> for <reviewer_username> to review "<body>"
+#   tidebot create pr from <repo>/<branch> into <base> for <reviewer_username> to review "<body>"
 #
 # Notes:
 # repo (required): Repository where your branch exists.
@@ -28,19 +28,19 @@ githubToken = process.env.HUBOT_GITHUB_TOKEN
 module.exports = (robot) ->
   github = require('githubot')(robot)
 
-  robot.respond /create pr from ([-_\.0-9a-zA-Z]+)\/([-_\.a-zA-z0-9\/]+)\/([-_\.a-zA-z0-9\/]+)(?: into ([-_\.a-zA-z0-9\/]+))(?: for ([-_\.a-zA-z0-9\/]+) to review)?(?: "(.*)")?$/i, (msg) ->
+  robot.respond /create pr from ([-_\.a-zA-z0-9\/]+)\/([-_\.a-zA-z0-9\/]+)(?: into ([-_\.a-zA-z0-9\/]+))(?: for ([-_\.a-zA-z0-9\/]+) to review)?(?: "(.*)")?$/i, (msg) ->
     return if missingEnv(msg)
 
-    base = msg.match[4]
+    base = msg.match[3]
 
     data = {
-      title: "PR to merge #{msg.match[3]} into #{base}",
-      head: msg.match[3],
+      title: "PR to merge #{msg.match[2]} into #{base}",
+      head: msg.match[2],
       base: base,
-      body: msg.match[6] || 'PR for review',
+      body: msg.match[5] || 'PR for review',
     }
     reviewers = {
-        reviewers: [msg.match[5]]
+        reviewers: [msg.match[4]]
     }
 
     github.handleErrors (response) ->
@@ -52,10 +52,10 @@ module.exports = (robot) ->
         else
           msg.send 'Error: Sorry TidePooler, something is wrong with your request.'
 
-    github.post "repos/#{msg.match[1]}/#{msg.match[2]}/pulls", data, (pr) ->
-      msg.send "Success! Pull request created for #{msg.match[3]}. #{pr.html_url}"
+    github.post "repos/Tidepool-org/#{msg.match[1]}/pulls", data, (pr) ->
+      msg.send "Success! Pull request created for #{msg.match[2]}. #{pr.html_url}"
     #   github.post "repos/Tidepool-org/integration-test/contents/flux/environments/develop/tidepool-helmrelease.yaml"
-    github.post "repos/#{msg.match[1]}/#{msg.match[2]}/pulls/#{pr.number}/requested_reviewers", reviewers, (test) ->
+    github.post "repos/Tidepool-org/#{msg.match[1]}/pulls/#{pr.number}/requested_reviewers", reviewers, (test) ->
       msg.send test.html test.requested_reviewers[0].login
   missingEnv = (msg) ->
     unless githubToken?
