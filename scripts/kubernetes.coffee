@@ -89,8 +89,9 @@ module.exports = (robot) ->
                     github.put kubernetesGithubYamlFile, deploy, (ref) ->
                         res.send "OK"
                 
-                    announceRepoEvent adapter, datas, eventType, (what) ->
-                        robot.messageRoom room, "what"
+                    robot.messageRoom room, "#{deploy.message}"
                     res.send "#{deploy.message}"
+            announceRepoEvent adapter, datas, eventType, (what) ->
+                robot.messageRoom room, what
             res.send "OK"
 
