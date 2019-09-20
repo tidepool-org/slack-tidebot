@@ -90,7 +90,7 @@ module.exports = (robot) ->
                         res.send "OK"
                 
                     announceRepoEvent adapter, datas, eventType, (what) ->
-                        robot.messageRoom room, what
+                        robot.messageRoom room, "what"
                     res.send "#{deploy.message}"
             res.send "OK"
 
