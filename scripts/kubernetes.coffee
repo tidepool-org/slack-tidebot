@@ -86,7 +86,7 @@ module.exports = (robot) ->
                         dockerImageFilter = "glob:" + serviceBranch + "-*"
                         console.log yamlFileParsed
                         console.log serviceRepo
-                        yamlFileParsed.environments["#{config.Env}"].tidepool.gitops["#{serviceRepo}"] = dockerImageFilter
+                        yamlFileParsed.environments["#{config.Env}"].tidepool.gitops.[serviceRepo] = dockerImageFilter
                         console.log yamlFileParsed
                         console.log serviceRepo
                         newYamlFileUpdated = YAML.stringify(yamlFileParsed)
