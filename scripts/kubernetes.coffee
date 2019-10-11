@@ -24,11 +24,12 @@ eventTypesRaw = process.env['HUBOT_GITHUB_EVENT_NOTIFIER_TYPES']
 Base64 = require('js-base64').Base64;
 eventTypes = []
 environmentToRepoMap = {
-    "qa1": "cluster-development",
-    "qa2": "cluster-development",
+    "qa1": "cluster-qa1",
+    "qa2": "cluster-qa2",
     "int": "cluster-integration",
     "prd": "cluster-production",
-    "test": "integration-test"
+    "test": "integration-test",
+    "stg": "cluster-staging"
 }
 environmentToEnv = {
     "dev": "qa1",
@@ -70,27 +71,49 @@ module.exports = (robot) ->
                     }
                 serviceBranch = branch.head.ref
                 config = prCommentEnvExtractor(comments)
-                kubernetesGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/clusters/development/flux/environments/#{config.Env}/tidepool-helmrelease.yaml"
-                
-                github.get kubernetesGithubYamlFile, (ref) -> 
-                    yamlFileDecoded = Base64.decode(ref.content)
-                    yamlFileParsed = YAML.parse(yamlFileDecoded)
-                    repoDestination = "flux.weave.works/tag." + serviceRepo
-                    dockerImageFilter = "glob:" + serviceBranch + "-*"
-                    yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
-                    newYamlFileUpdated = YAML.stringify(yamlFileParsed)
-                    newYamlFileEncoded = Base64.encode(newYamlFileUpdated)
-                    deploy = {
-                        message: "#{sender} deployed #{serviceRepo} to #{config.Env}",
-                        content: newYamlFileEncoded,
-                        sha: ref.sha
-                    }
+                kubernetesGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
+                environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
+                if kubernetesGithubYamlFile == undefined
+                    console.log "The repo path you are trying to deploy to does not exist or A Kubernetes config Yaml file does not exist in this repo"
+                    return
+                else if environmentValuesYamlFile == undefined
+                    console.log "The repo path you are trying to deploy to does not exist or A Kubernetes values Yaml file does not exist in this repo"
+                    return
+                else
+                    github.get environmentValuesYamlFile, (ref) ->
+                        yamlFileDecoded = Base64.decode(ref.content)
+                        yamlFileParsed = YAML.parse(yamlFileDecoded)
+                        dockerImageFilter = "glob:" + serviceBranch + "-*"
+                        yamlFileParsed.environments["#{config.Env}"].gitops[serviceRepo] = dockerImageFilter
+                        newYamlFileUpdated = YAML.stringify(yamlFileParsed)
+                        newYamlFileEncoded = Base64.encode(newYamlFileUpdated)
+                        deploy = {
+                            message: "#{sender} deployed #{serviceRepo} to #{config.Env}",
+                            content: newYamlFileEncoded,
+                            sha: ref.sha
+                        }
+                        
+                        github.put kubernetesGithubYamlFile, deploy, (ref) ->
+                            res.send "OK"
+                    github.get kubernetesGithubYamlFile, (ref) -> 
+                        yamlFileDecoded = Base64.decode(ref.content)
+                        yamlFileParsed = YAML.parse(yamlFileDecoded)
+                        repoDestination = "fluxcd.io/tag." + serviceRepo
+                        dockerImageFilter = "glob:" + serviceBranch + "-*"
+                        yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
+                        newYamlFileUpdated = YAML.stringify(yamlFileParsed)
+                        newYamlFileEncoded = Base64.encode(newYamlFileUpdated)
+                        deploy = {
+                            message: "#{sender} deployed #{serviceRepo} to #{config.Env}",
+                            content: newYamlFileEncoded,
+                            sha: ref.sha
+                        }
+                        
+                        github.put kubernetesGithubYamlFile, deploy, (ref) ->
+                            res.send "OK"
                     
-                    github.put kubernetesGithubYamlFile, deploy, (ref) ->
-                        res.send "OK"
-                
-                    robot.messageRoom room, "#{deploy.message}"
-                    res.send "#{deploy.message}"
+                        robot.messageRoom room, "#{deploy.message}"
+                        res.send "#{deploy.message}"
             announceRepoEvent adapter, datas, eventType, (what) ->
                 robot.messageRoom room, what
             res.send "OK"
