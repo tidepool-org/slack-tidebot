@@ -84,7 +84,9 @@ module.exports = (robot) ->
                         yamlFileDecoded = Base64.decode(ref.content)
                         yamlFileParsed = YAML.parse(yamlFileDecoded)
                         dockerImageFilter = "glob:" + serviceBranch + "-*"
-                        yamlFileParsed.environments["#{config.Env}"].gitops[serviceRepo] = dockerImageFilter
+                        yamlFileParsed.environments["#{config.Env}"].tidepool.gitops[serviceRepo] = dockerImageFilter
+                        console.log yamlFileParsed
+                        console.log serviceRepo
                         newYamlFileUpdated = YAML.stringify(yamlFileParsed)
                         newYamlFileEncoded = Base64.encode(newYamlFileUpdated)
                         deploy = {
