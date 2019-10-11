@@ -86,7 +86,7 @@ module.exports = (robot) ->
                         dockerImageFilter = "glob:" + serviceBranch + "-*"
                         console.log yamlFileParsed
                         console.log serviceRepo
-                        yamlFileParsed.environments[config.Env].tidepool.gitops["#{serviceRepo}"] = dockerImageFilter
+                        yamlFileParsed.environments[config.Env].tidepool.gitops[serviceRepo] = dockerImageFilter
                         console.log yamlFileParsed
                         console.log serviceRepo
                         newYamlFileUpdated = YAML.stringify(yamlFileParsed)
@@ -97,7 +97,7 @@ module.exports = (robot) ->
                             sha: ref.sha
                         }
                         
-                        github.put kubernetesGithubYamlFile, deploy, (ref) ->
+                        github.put environmentValuesYamlFile, deploy, (ref) ->
                             res.send "OK"
                     github.get kubernetesGithubYamlFile, (ref) -> 
                         yamlFileDecoded = Base64.decode(ref.content)
