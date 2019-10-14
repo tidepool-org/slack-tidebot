@@ -94,7 +94,7 @@ module.exports = (robot) ->
                             sha: ref.sha
                         }
 
-                    valuesYamlFileDeploy = (ref, dockerImageFilter, sender, serviceRepo, config) ->
+                    valuesYamlFileDeploy = (ref, sender, serviceRepo, config) ->
                         yamlFileDecoded = Base64.decode(ref.content)
                         yamlFileParsed = YAML.parse(yamlFileDecoded)
                         dockerImageFilter = "glob:" + serviceBranch + "-*"
