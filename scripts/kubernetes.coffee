@@ -84,7 +84,6 @@ module.exports = (robot) ->
                     return
                 else
                     configYamlFileDeploy = (ref, repoDestination, dockerImageFilter, sender, serviceRepo, config) ->
-                        console.log "CONFIG YAML FILE #{config}"
                         yamlFileDecoded = Base64.decode(ref.content)
                         yamlFileParsed = YAML.parse(yamlFileDecoded)
                         yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
@@ -97,7 +96,6 @@ module.exports = (robot) ->
                         }
 
                     valuesYamlFileDeploy = (ref, sender, serviceRepo, config) ->
-                        console.log "VALUES YAML FILE #{config}"
                         yamlFileDecoded = Base64.decode(ref.content)
                         yamlFileParsed = YAML.parse(yamlFileDecoded)
                         dockerImageFilter = "glob:" + serviceBranch + "-*"
