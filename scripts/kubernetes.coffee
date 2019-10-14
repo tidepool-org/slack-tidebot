@@ -73,6 +73,7 @@ module.exports = (robot) ->
                     }
                 serviceBranch = branch.head.ref
                 config = prCommentEnvExtractor(comments)
+                console.log "initial #{config}"
                 kubernetesGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
                 environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
                 if kubernetesGithubYamlFile == undefined
@@ -83,6 +84,7 @@ module.exports = (robot) ->
                     return
                 else
                     configYamlFileDeploy = (ref, repoDestination, dockerImageFilter, sender, serviceRepo, config) ->
+                        console.log "CONFIG YAML FILE #{config}"
                         yamlFileDecoded = Base64.decode(ref.content)
                         yamlFileParsed = YAML.parse(yamlFileDecoded)
                         yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
@@ -95,6 +97,7 @@ module.exports = (robot) ->
                         }
 
                     valuesYamlFileDeploy = (ref, dockerImageFilter, sender, serviceRepo, config) ->
+                        console.log "VALUES YAML FILE #{config}"
                         yamlFileDecoded = Base64.decode(ref.content)
                         yamlFileParsed = YAML.parse(yamlFileDecoded)
                         dockerImageFilter = "glob:" + serviceBranch + "-*"
