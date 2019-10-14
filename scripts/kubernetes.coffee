@@ -96,7 +96,7 @@ module.exports = (robot) ->
                             sha: ref.sha
                         }
 
-                    valuesYamlFileDeploy = (ref, dockerImageFilter, sender, serviceRepo, config) ->
+                    valuesYamlFileDeploy = (ref, sender, serviceRepo, config) ->
                         console.log "VALUES YAML FILE #{config}"
                         yamlFileDecoded = Base64.decode(ref.content)
                         yamlFileParsed = YAML.parse(yamlFileDecoded)
