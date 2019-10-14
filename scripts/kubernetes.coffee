@@ -89,7 +89,7 @@ module.exports = (robot) ->
                         newYamlFileUpdated = YAML.stringify(yamlFileParsed)
                         newYamlFileEncoded = Base64.encode(newYamlFileUpdated)
                         {
-                            message: "#{sender} deployed #{serviceRepo} to #{config.Env}",
+                            message: "#{sender} deployed #{serviceRepo} and #{serviceBranch} to #{config.Env}",
                             content: newYamlFileEncoded,
                             sha: ref.sha
                         }
@@ -102,7 +102,7 @@ module.exports = (robot) ->
                         newYamlFileUpdated = YAML.stringify(yamlFileParsed)
                         newYamlFileEncoded = Base64.encode(newYamlFileUpdated)
                         {
-                            message: "#{sender} deployed #{serviceRepo} to #{config.Env}",
+                            message: "#{sender} deployed #{serviceRepo} and #{serviceBranch} to #{config.Env}",
                             content: newYamlFileEncoded,
                             sha: ref.sha
                         }
