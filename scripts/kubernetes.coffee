@@ -73,7 +73,6 @@ module.exports = (robot) ->
                     }
                 serviceBranch = branch.head.ref
                 config = prCommentEnvExtractor(comments)
-                console.log "initial #{config}"
                 kubernetesGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
                 environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
                 if kubernetesGithubYamlFile == undefined
