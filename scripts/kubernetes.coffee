@@ -94,7 +94,7 @@ module.exports = (robot) ->
                             sha: ref.sha
                         }
 
-                    valuesYamlFileDeploy = (ref, repoDestination, dockerImageFilter, sender, serviceRepo, config) ->
+                    valuesYamlFileDeploy = (ref, dockerImageFilter, sender, serviceRepo, config) ->
                         yamlFileDecoded = Base64.decode(ref.content)
                         yamlFileParsed = YAML.parse(yamlFileDecoded)
                         dockerImageFilter = "glob:" + serviceBranch + "-*"
@@ -107,7 +107,7 @@ module.exports = (robot) ->
                             sha: ref.sha
                         }
                     github.get environmentValuesYamlFile, (ref) ->
-                        deploy = valuesYamlFileDeploy ref, repoDestination, dockerImageFilter, sender, serviceRepo, config
+                        deploy = valuesYamlFileDeploy ref, dockerImageFilter, sender, serviceRepo, config
                         github.put environmentValuesYamlFile, deploy, (ref) ->
                             res.send "OK"
                     github.get kubernetesGithubYamlFile, (ref) -> 
