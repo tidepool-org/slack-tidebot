@@ -107,7 +107,7 @@ module.exports = (robot) ->
                             sha: ref.sha
                         }
                     github.get environmentValuesYamlFile, (ref) ->
-                        deploy = valuesYamlFileDeploy ref, dockerImageFilter, sender, serviceRepo, config
+                        deploy = valuesYamlFileDeploy ref, sender, serviceRepo, config
                         github.put environmentValuesYamlFile, deploy, (ref) ->
                             res.send "OK"
                     github.get kubernetesGithubYamlFile, (ref) -> 
