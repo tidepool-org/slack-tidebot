@@ -82,21 +82,23 @@ module.exports = (robot) ->
                     console.log "The repo path you are trying to deploy to does not exist or A Kubernetes values Yaml file does not exist in this repo"
                     return
                 else
-                    repoDestination = "fluxcd.io/tag." + serviceRepo
-                    configDockerImageFilter = yamlFileParsed.metadata.annotations[repoDestination]
-                    valuesDockerImageFilter = yamlFileParsed.environments[config.Env].tidepool.gitops[serviceRepo]
-                
-                    yamlFileEncode = (ref, newDockerImageFilter) ->
+                    repoToServices = (serviceRepo) ->
+                        if serviceRepo == "platform"
+                            ["data", "blob", "auth", "image", "migrations", "notification", "task", "tools", "user"]
+                        else
+                            [serviceRepo]
+
+                    yamlFileEncode = (ref, changeAnnotations) ->
                         yamlFileDecoded = Base64.decode(ref.content)
                         yamlFileParsed = YAML.parse(yamlFileDecoded)
                         dockerImageFilter = "glob:" + serviceBranch + "-*"
-                        if serviceRepo == "platform"
-                            for platform,i in ["data", "blob", "auth", "image", "migrations", "notification", "task", "tools", "user"]
-                                repoDestination = "fluxcd.io/tag." + platform
-                                console.log repoDestination
-                        else
-                            repoDestination = "fluxcd.io/tag." + serviceRepo
-                        newDockerImageFilter = dockerImageFilter
+                        theList = repoToServices serviceRepo
+                        for platform in theList
+                            repoDestination = "fluxcd.io/tag." + platform
+                            if changeAnnotations
+                                yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
+                            else
+                                yamlFileParsed.environments[config.Env].tidepool.gitops[platform] = dockerImageFilter
                         newYamlFileUpdated = YAML.stringify(yamlFileParsed)
                         Base64.encode(newYamlFileUpdated)
                         
@@ -108,11 +110,11 @@ module.exports = (robot) ->
                         }
 
                     github.get environmentValuesYamlFile, (ref) ->
-                        deploy = deployYamlFile ref, yamlFileEncode(ref, valuesDockerImageFilter), sender, serviceRepo, serviceBranch, config
+                        deploy = deployYamlFile ref, yamlFileEncode(ref, false), sender, serviceRepo, serviceBranch, config
                         github.put environmentValuesYamlFile, deploy, (ref) ->
                             res.send "#{deploy.message}"
                     github.get kubernetesGithubYamlFile, (ref) -> 
-                        deploy = deployYamlFile ref, yamlFileEncode(ref, configDockerImageFilter), sender, serviceRepo, serviceBranch, config
+                        deploy = deployYamlFile ref, yamlFileEncode(ref, true), sender, serviceRepo, serviceBranch, config
                         github.put kubernetesGithubYamlFile, deploy, (ref) ->
                             res.send "#{deploy.messages}"
                         robot.messageRoom room, "#{deploy.message}"
