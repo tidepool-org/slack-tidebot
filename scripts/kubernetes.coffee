@@ -82,52 +82,47 @@ module.exports = (robot) ->
                     console.log "The repo path you are trying to deploy to does not exist or A Kubernetes values Yaml file does not exist in this repo"
                     return
                 else
-                    configYamlFileDeploy = (ref, repoDestination, dockerImageFilter, sender, serviceRepo, config) ->
+                    repoToServices = (serviceRepo) ->
+                        if serviceRepo == "platform"
+                            ["data", "blob", "auth", "image", "migrations", "notification", "task", "tools", "user"]
+                        else
+                            [serviceRepo]
+
+                    yamlFileEncode = (ref, changeAnnotations) ->
                         yamlFileDecoded = Base64.decode(ref.content)
                         yamlFileParsed = YAML.parse(yamlFileDecoded)
-                        yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
+                        dockerImageFilter = "glob:" + serviceBranch + "-*"
+                        theList = repoToServices serviceRepo
+                        for platform in theList
+                            repoDestination = "fluxcd.io/tag." + platform
+                            if changeAnnotations
+                                yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
+                            else
+                                yamlFileParsed.environments[config.Env].tidepool.gitops[platform] = dockerImageFilter
                         newYamlFileUpdated = YAML.stringify(yamlFileParsed)
-                        newYamlFileEncoded = Base64.encode(newYamlFileUpdated)
+                        console.log "YAML FILE UPDATE #{newYamlFileUpdated}"
+                        Base64.encode(newYamlFileUpdated)
+                        
+                    deployYamlFile = (ref, newYamlFileEncoded, sender, serviceRepo, serviceBranch, config) ->
                         {
-                            message: "#{sender} deployed #{serviceRepo} to #{config.Env}",
+                            message: "#{sender} deployed #{serviceRepo} and #{serviceBranch} to #{config.Env}",
                             content: newYamlFileEncoded,
                             sha: ref.sha
                         }
 
-                    valuesYamlFileDeploy = (ref, sender, serviceRepo, config) ->
-                        yamlFileDecoded = Base64.decode(ref.content)
-                        yamlFileParsed = YAML.parse(yamlFileDecoded)
-                        dockerImageFilter = "glob:" + serviceBranch + "-*"
-                        yamlFileParsed.environments[config.Env].tidepool.gitops[serviceRepo] = dockerImageFilter
-                        newYamlFileUpdated = YAML.stringify(yamlFileParsed)
-                        newYamlFileEncoded = Base64.encode(newYamlFileUpdated)
-                        {
-                            message: "#{sender} deployed #{serviceRepo} to #{config.Env}",
-                            content: newYamlFileEncoded,
-                            sha: ref.sha
-                        }
                     github.get environmentValuesYamlFile, (ref) ->
-                        deploy = valuesYamlFileDeploy ref, sender, serviceRepo, config
+                        yamlFileEncodeForValues = yamlFileEncode(ref, false)
+                        deploy = deployYamlFile ref, yamlFileEncodeForValues, sender, serviceRepo, serviceBranch, config
+                        console.log "THIS IS FOR VALUE #{deploy.sha}"
                         github.put environmentValuesYamlFile, deploy, (ref) ->
-                            res.send "OK"
+                            console.log "#{ref}"
                     github.get kubernetesGithubYamlFile, (ref) -> 
-                        if serviceRepo == "platform"
-                            for platform,i in ["data", "blob", "auth", "image", "migrations", "notification", "task", "tools", "user"]
-                                repoDestination = "fluxcd.io/tag." + platform
-                                dockerImageFilter = "glob:" + serviceBranch + "-*"
-                                console.log repoDestination
-                                deploy = configYamlFileDeploy ref, repoDestination, dockerImageFilter, sender, serviceRepo, config
-                                github.put kubernetesGithubYamlFile, deploy, (ref) ->
-                                    res.send "OK"
-                        else
-                            repoDestination = "fluxcd.io/tag." + serviceRepo
-                            dockerImageFilter = "glob:" + serviceBranch + "-*"
-                            deploy = configYamlFileDeploy ref, repoDestination, dockerImageFilter, sender, serviceRepo, config
-                            github.put kubernetesGithubYamlFile, deploy, (ref) ->
-                                res.send "OK"
-                    
+                        yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
+                        deploy = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
+                        console.log "THIS IS FOR KUBE CONFIG #{deploy.sha}"
+                        github.put kubernetesGithubYamlFile, deploy, (ref) ->
+                            console.log "#{ref}"
                             robot.messageRoom room, "#{deploy.message}"
-                            res.send "#{deploy.message}"
             announceRepoEvent adapter, datas, eventType, (what) ->
                 robot.messageRoom room, what
             res.send "OK"
