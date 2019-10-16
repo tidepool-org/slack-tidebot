@@ -94,7 +94,6 @@ module.exports = (robot) ->
                             else
                                 yamlFileParsed.environments[config.Env].tidepool.gitops[platform] = dockerImageFilter
                         newYamlFileUpdated = YAML.stringify(yamlFileParsed)
-                        console.log "YAML FILE UPDATE #{newYamlFileUpdated}"
                         Base64.encode(newYamlFileUpdated)
                         
                     deployYamlFile = (ref, newYamlFileEncoded, sender, serviceRepo, serviceBranch, config) ->

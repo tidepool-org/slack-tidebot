@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+{{ with .Values.configmap.data_ }}
+data:
+  HUBOT_GITHUB_EVENT_NOTIFIER_TYPES: {{ .HUBOT_GITHUB_EVENT_NOTIFIER_TYPES | default "" }}
+  HUBOT_SLACK_ACCOUNT: {{ .HUBOT_SLACK_ACCOUNT | default "" }}
+  HUBOT_SLACK_ROOMS: {{ .HUBOT_SLACK_ROOMS | default "" }}
+{{- end }}
+kind: ConfigMap
+metadata:
+  name: tidebot
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: tidebot
+type: Opaque

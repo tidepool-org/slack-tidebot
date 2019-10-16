@@ -1,0 +1,22 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: tidebot
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/name: tidebot
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  name: tidebot
+  namespace: {{.Release.Namespace}}
+spec:
+  ports:
+  - name: "http"
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: tidebot
+    app.kubernetes.io/name: tidebot
+    app.kubernetes.io/instance: {{ .Release.Name }}
+status:
+  loadBalancer: {}
