@@ -31,12 +31,6 @@ environmentToRepoMap = {
     "test": "integration-test",
     "stg": "cluster-staging"
 }
-environmentToEnv = {
-    "dev": "qa1",
-    "stg": "qa2",
-    "int": "cluster-integration",
-    "prd": "cluster-production"
-}
 
 announceRepoEvent = (adapter, datas, eventType, cb) ->
   if eventActions[eventType]?
@@ -105,23 +99,23 @@ module.exports = (robot) ->
                         
                     deployYamlFile = (ref, newYamlFileEncoded, sender, serviceRepo, serviceBranch, config) ->
                         {
-                            message: "#{sender} deployed #{serviceRepo} and #{serviceBranch} to #{config.Env}",
+                            message: "#{sender} deployed #{serviceRepo} #{serviceBranch} branch to #{config.Env} environment",
                             content: newYamlFileEncoded,
                             sha: ref.sha
                         }
-
+                    github.handleErrors (response) ->
+                        console.log "Oh no! #{JSON.stringify(response)}!"
                     github.get environmentValuesYamlFile, (ref) ->
                         yamlFileEncodeForValues = yamlFileEncode(ref, false)
                         deploy = deployYamlFile ref, yamlFileEncodeForValues, sender, serviceRepo, serviceBranch, config
-                        console.log "THIS IS FOR VALUE #{deploy.sha}"
                         github.put environmentValuesYamlFile, deploy, (ref) ->
-                            console.log "#{ref}"
+                            console.log "#{deploy.message}"
+                            robot.messageRoom room, "#{deploy.message}"
                     github.get kubernetesGithubYamlFile, (ref) -> 
                         yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
                         deploy = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
-                        console.log "THIS IS FOR KUBE CONFIG #{deploy.sha}"
                         github.put kubernetesGithubYamlFile, deploy, (ref) ->
-                            console.log "#{ref}"
+                            console.log "#{deploy.message}"
                             robot.messageRoom room, "#{deploy.message}"
             announceRepoEvent adapter, datas, eventType, (what) ->
                 robot.messageRoom room, what
