@@ -100,6 +100,7 @@ module.exports = (robot) ->
                             else
                                 yamlFileParsed.environments[config.Env].tidepool.gitops[platform] = dockerImageFilter
                         newYamlFileUpdated = YAML.stringify(yamlFileParsed)
+                        console.log "YAML FILE UPDATE #{newYamlFileUpdated}"
                         Base64.encode(newYamlFileUpdated)
                         
                     deployYamlFile = (ref, newYamlFileEncoded, sender, serviceRepo, serviceBranch, config) ->
@@ -110,15 +111,18 @@ module.exports = (robot) ->
                         }
 
                     github.get environmentValuesYamlFile, (ref) ->
-                        deploy = deployYamlFile ref, yamlFileEncode(ref, false), sender, serviceRepo, serviceBranch, config
+                        yamlFileEncodeForValues = yamlFileEncode(ref, false)
+                        deploy = deployYamlFile ref, yamlFileEncodeForValues, sender, serviceRepo, serviceBranch, config
+                        console.log "THIS IS FOR VALUE #{deploy.sha}"
                         github.put environmentValuesYamlFile, deploy, (ref) ->
-                            res.send "#{deploy.message}"
+                            console.log "#{ref}"
                     github.get kubernetesGithubYamlFile, (ref) -> 
-                        deploy = deployYamlFile ref, yamlFileEncode(ref, true), sender, serviceRepo, serviceBranch, config
+                        yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
+                        deploy = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
+                        console.log "THIS IS FOR KUBE CONFIG #{deploy.sha}"
                         github.put kubernetesGithubYamlFile, deploy, (ref) ->
-                            res.send "#{deploy.messages}"
-                        robot.messageRoom room, "#{deploy.message}"
-                        res.send "#{deploy.message}"
+                            console.log "#{ref}"
+                            robot.messageRoom room, "#{deploy.message}"
             announceRepoEvent adapter, datas, eventType, (what) ->
                 robot.messageRoom room, what
             res.send "OK"
