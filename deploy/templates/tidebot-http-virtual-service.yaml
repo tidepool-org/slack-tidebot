@@ -1,0 +1,61 @@
+{{- if .Values.ingress.service.http.enabled -}}
+{{- $spec := .Values.ingress.gateway.http -}}
+{{- $port := $spec.port | default "8080" -}}
+---
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: 'tidebot-http'
+  namespace: '{{ .Release.Namespace }}'
+spec:
+  displayName: 'http-virtual-service'
+  virtualHost:
+    domains:
+{{- range $dnsName := $spec.dnsNames -}}
+{{ if eq $dnsName "*" }}
+    - '*'
+{{- else }}
+    - '{{ if ne $port "8080" -}}{{- printf "%s:%s" $dnsName $port -}} {{- else -}} {{ printf "%s" $dnsName -}}{{- end -}}'
+{{- end -}}
+{{- end }}
+    routes:
+    - matcher:
+        methods:
+        - POST
+        - GET
+        - PUT
+        - DELETE
+        prefix: /
+      routeAction:
+        single:
+          upstream:
+            name: '{{ .Release.Namespace }}-tidebot-8080'
+            namespace: '{{ .Release.Namespace }}'
+{{ else }}
+---
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: 'tidebot-http'
+  namespace: '{{ .Release.Namespace }}'
+spec:
+  displayName: 'http-virtual-service'
+  virtualHost:
+    domains:
+{{- range $dnsName := .Values.ingress.gateway.https.dnsNames }}
+    - '{{ $dnsName }}'
+{{- end }}
+    routes:
+    - matcher:
+        methods:
+        - POST
+        - GET
+        - PUT
+        - DELETE
+        prefix: /
+      routeAction:
+        single:
+          upstream:
+            name: '{{ .Release.Namespace }}-tidebot-8080'
+            namespace: '{{ .Release.Namespace }}'
+{{- end -}}
