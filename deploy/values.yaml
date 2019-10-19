@@ -16,12 +16,17 @@ securityContext: {}
 hpa:
   enabled: false
 ingress:
+  certificate:
+    secretName: tls
   service:
     http:
       enabled: false
-      dnsNames: []
     https:
       enabled: false
+  gateway:
+    http:
+      dnsNames: []
+    https:
       dnsNames: []
 
 
