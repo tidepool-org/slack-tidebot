@@ -23,14 +23,14 @@ spec:
         methods:
         - POST
         - GET
-        - PUT
-        - DELETE
         prefix: /
       routeAction:
         single:
-          upstream:
-            name: '{{ .Release.Namespace }}-tidebot-8080'
-            namespace: '{{ .Release.Namespace }}'
+          kube:
+            ref:
+              name: tidebot
+              namespace: '{{ .Release.Namespace }}'
+            port: '8080'
 {{ else }}
 ---
 apiVersion: gateway.solo.io/v1
@@ -50,12 +50,12 @@ spec:
         methods:
         - POST
         - GET
-        - PUT
-        - DELETE
         prefix: /
       routeAction:
         single:
-          upstream:
-            name: '{{ .Release.Namespace }}-tidebot-8080'
-            namespace: '{{ .Release.Namespace }}'
+          kube:
+            ref:
+              name: tidebot
+              namespace: '{{ .Release.Namespace }}'
+            port: '8080'
 {{- end -}}

@@ -15,3 +15,11 @@ resources: {}
 securityContext: {}
 hpa:
   enabled: false
+ingress:
+  service:
+    http:
+      enabled: false
+      dnsNames: []
+    https:
+      enabled: false
+      dnsNames: []

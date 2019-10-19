@@ -18,5 +18,4 @@ spec:
     app: tidebot
     app.kubernetes.io/name: tidebot
     app.kubernetes.io/instance: {{ .Release.Name }}
-status:
-  loadBalancer: {}
+    
