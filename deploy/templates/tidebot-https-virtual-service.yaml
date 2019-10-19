@@ -38,5 +38,5 @@ spec:
             ref:
               name: tidebot
               namespace: '{{ .Release.Namespace }}'
-            port: $port
+            port: 8080
 {{- end -}}
