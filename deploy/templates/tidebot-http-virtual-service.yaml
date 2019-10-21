@@ -30,5 +30,5 @@ spec:
             ref:
               name: tidebot
               namespace: '{{ .Release.Namespace }}'
-            port: $port
+            port: {{ $port }}
 {{- end -}}
