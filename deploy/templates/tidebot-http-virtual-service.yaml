@@ -1,6 +1,6 @@
 {{- if .Values.ingress.service.http.enabled -}}
 {{- $spec := .Values.ingress.gateway.http -}}
-{{- $port := $spec.port | default "8080" -}}
+{{- $port := $spec.port | default "80" -}}
 ---
 apiVersion: gateway.solo.io/v1
 kind: VirtualService
