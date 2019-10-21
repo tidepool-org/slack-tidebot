@@ -39,4 +39,4 @@ COPY --from=dependencies /app/production_node_modules ./node_modules
 COPY --chown=node:node . .
 USER node
 ENV PATH="node_modules/.bin:node_modules/hubot/node_modules/.bin:$PATH"
-CMD ["node_modules/.bin/hubot", "--name", "tidebot"]
+CMD ["node_modules/.bin/hubot", "--name", "tidebot", "--adapter", "slack"]
