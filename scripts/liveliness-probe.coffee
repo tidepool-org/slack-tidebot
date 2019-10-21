@@ -16,6 +16,7 @@
 #   NA
 #
 module.exports = (robot) ->
+    console.log "liveness probe installed"
     robot.router.get '/status', (req, res) ->
         console.log req
         res.send "OK"
