@@ -27,7 +27,7 @@ json='{
     "insecure_ssl": "0"
   }
 }'
-Data="https://slack-tidebot.herokuapp.com/hubot/gh-repo-events?room=github-events"
+Data="http://tidebot.tidepool.org/hubot/gh-repo-events?room=github-events"
 newJson=$(echo $json | sed -e "s!URL!$Data!")
 n=$1
 curlOutput=$(curl -X POST -H "Authorization: token $webhookToken" -d "$newJson" https://api.github.com/repos/tidepool-org/$n/hooks)
