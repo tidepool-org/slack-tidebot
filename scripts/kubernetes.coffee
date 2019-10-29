@@ -46,6 +46,10 @@ module.exports = (robot) ->
         adapter = robot.adapterName
         room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
         datas = req.body
+        authorized = datas.comment.author_association
+        if !(authorized == "COLLABORATOR" || authorized == "MEMBER" || authorized == "OWNER")
+            console.log "user is not authorized to for this command"
+            return
         if datas.comment == undefined
             announceRepoEvent adapter, datas, eventType, (what) ->
                 robot.messageRoom room, what
