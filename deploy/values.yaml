@@ -1,0 +1,32 @@
+secret:
+  enabled: false
+  data_:
+    HUBOT_GITHUB_TOKEN: ""
+    HUBOT_SLACK_TOKEN: ""
+configmap:
+  data_:
+    HUBOT_GITHUB_EVENT_NOTIFIER_TYPES: "commit_comment,create,delete,deployment,deployment_status,issue_comment,issues,page_build,pull_request_review_comment,pull_request,push,repository,release,status,ping,pull_request_review"
+    HUBOT_SLACK_ACCOUNT: "Tidepool"
+    HUBOT_SLACK_ROOMS: "tidebot,github-events"
+deployment:
+  podAnnotations: {}
+  image: tidepool/slack-tidebot:k8s-83a16688d311591f11079690442a791c43fb45ab
+resources: {}
+securityContext: {}
+hpa:
+  enabled: false
+ingress:
+  certificate:
+    secretName: tls
+  service:
+    http:
+      enabled: false
+    https:
+      enabled: false
+  gateway:
+    http:
+      dnsNames: []
+    https:
+      dnsNames: []
+
+

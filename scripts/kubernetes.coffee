@@ -24,18 +24,16 @@ eventTypesRaw = process.env['HUBOT_GITHUB_EVENT_NOTIFIER_TYPES']
 Base64 = require('js-base64').Base64;
 eventTypes = []
 environmentToRepoMap = {
+    "tidebot": "cluster-shared"
     "qa1": "cluster-qa1",
     "qa2": "cluster-qa2",
     "int": "cluster-integration",
+    "integration": "cluster-integration",
     "prd": "cluster-production",
+    "production": "cluster-production",
     "test": "integration-test",
     "stg": "cluster-staging"
-}
-environmentToEnv = {
-    "dev": "qa1",
-    "stg": "qa2",
-    "int": "cluster-integration",
-    "prd": "cluster-production"
+    "staging": "cluster-staging"
 }
 
 announceRepoEvent = (adapter, datas, eventType, cb) ->
@@ -52,6 +50,10 @@ module.exports = (robot) ->
         adapter = robot.adapterName
         room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
         datas = req.body
+        authorized = datas.comment.author_association
+        if !(authorized == "COLLABORATOR" || authorized == "MEMBER" || authorized == "OWNER")
+            console.log "user is not authorized to for this command"
+            return
         if datas.comment == undefined
             announceRepoEvent adapter, datas, eventType, (what) ->
                 robot.messageRoom room, what
@@ -73,52 +75,62 @@ module.exports = (robot) ->
                     }
                 serviceBranch = branch.head.ref
                 config = prCommentEnvExtractor(comments)
+                tidebotK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Env}/tidebot-helmrelease.yaml"
                 kubernetesGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
                 environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
-                if kubernetesGithubYamlFile == undefined
-                    console.log "The repo path you are trying to deploy to does not exist or A Kubernetes config Yaml file does not exist in this repo"
-                    return
-                else if environmentValuesYamlFile == undefined
-                    console.log "The repo path you are trying to deploy to does not exist or A Kubernetes values Yaml file does not exist in this repo"
-                    return
-                else
-                    repoToServices = (serviceRepo) ->
-                        if serviceRepo == "platform"
-                            ["data", "blob", "auth", "image", "migrations", "notification", "task", "tools", "user"]
+                
+                repoToServices = (serviceRepo) ->
+                    if serviceRepo == "platform"
+                        ["data", "blob", "auth", "image", "migrations", "notification", "task", "tools", "user"]
+                    else
+                        [serviceRepo]
+                
+                yamlFileEncode = (ref, changeAnnotations) ->
+                    yamlFileDecoded = Base64.decode(ref.content)
+                    yamlFileParsed = YAML.parse(yamlFileDecoded)
+                    dockerImageFilter = "glob:" + serviceBranch + "-*"
+                    theList = repoToServices serviceRepo
+                    for platform in theList
+                        repoDestination = "fluxcd.io/tag." + platform
+                        if changeAnnotations
+                            yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
                         else
-                            [serviceRepo]
-
-                    yamlFileEncode = (ref, changeAnnotations) ->
-                        yamlFileDecoded = Base64.decode(ref.content)
-                        yamlFileParsed = YAML.parse(yamlFileDecoded)
-                        dockerImageFilter = "glob:" + serviceBranch + "-*"
-                        theList = repoToServices serviceRepo
-                        for platform in theList
-                            repoDestination = "fluxcd.io/tag." + platform
-                            if changeAnnotations
-                                yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
-                            else
-                                yamlFileParsed.environments[config.Env].tidepool.gitops[platform] = dockerImageFilter
-                        newYamlFileUpdated = YAML.stringify(yamlFileParsed)
-                        Base64.encode(newYamlFileUpdated)
-                        
-                    deployYamlFile = (ref, newYamlFileEncoded, sender, serviceRepo, serviceBranch, config) ->
-                        {
-                            message: "#{sender} deployed #{serviceRepo} and #{serviceBranch} to #{config.Env}",
-                            content: newYamlFileEncoded,
-                            sha: ref.sha
-                        }
-
-                    github.get environmentValuesYamlFile, (ref) ->
-                        deploy = deployYamlFile ref, yamlFileEncode(ref, false), sender, serviceRepo, serviceBranch, config
-                        github.put environmentValuesYamlFile, deploy, (ref) ->
-                            res.send "#{deploy.message}"
-                    github.get kubernetesGithubYamlFile, (ref) -> 
-                        deploy = deployYamlFile ref, yamlFileEncode(ref, true), sender, serviceRepo, serviceBranch, config
-                        github.put kubernetesGithubYamlFile, deploy, (ref) ->
-                            res.send "#{deploy.messages}"
+                            yamlFileParsed.environments[config.Env].tidepool.gitops[platform] = dockerImageFilter
+                    newYamlFileUpdated = YAML.stringify(yamlFileParsed)
+                    Base64.encode(newYamlFileUpdated)
+                    
+                deployYamlFile = (ref, newYamlFileEncoded, sender, serviceRepo, serviceBranch, config) ->
+                    {
+                        message: "#{sender} deployed #{serviceRepo} #{serviceBranch} branch to #{config.Env} environment",
+                        content: newYamlFileEncoded,
+                        sha: ref.sha
+                    }
+                github.handleErrors (response) ->
+                    console.log "Oh no! #{JSON.stringify(response)}!"
+                
+                github.get environmentValuesYamlFile, (ref) ->
+                    yamlFileEncodeForValues = yamlFileEncode(ref, false)
+                    deploy = deployYamlFile ref, yamlFileEncodeForValues, sender, serviceRepo, serviceBranch, config
+                    github.put environmentValuesYamlFile, deploy, (ref) ->
+                        console.log "#{deploy.message}"
                         robot.messageRoom room, "#{deploy.message}"
-                        res.send "#{deploy.message}"
+                
+                if serviceRepo == "slack-tidebot"
+                    github.get tidebotK8GithubYamlFile, (ref) -> 
+                        yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
+                        deploy = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
+                        github.put tidebotK8GithubYamlFile, deploy, (ref) ->
+                            console.log "#{deploy.message}"
+                            robot.messageRoom room, "#{deploy.message}"
+                
+                else
+                    github.get kubernetesGithubYamlFile, (ref) -> 
+                        yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
+                        deploy = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
+                        github.put kubernetesGithubYamlFile, deploy, (ref) ->
+                            console.log "#{deploy.message}"
+                            robot.messageRoom room, "#{deploy.message}"
+            
             announceRepoEvent adapter, datas, eventType, (what) ->
                 robot.messageRoom room, what
             res.send "OK"
