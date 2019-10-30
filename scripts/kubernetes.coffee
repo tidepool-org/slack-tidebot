@@ -94,8 +94,8 @@ module.exports = (robot) ->
                         repoDestination = "fluxcd.io/tag." + platform
                         if changeAnnotations
                             yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
-                        # else if config.Env == "tidebot"
-                        #     yamlFileParsed.pkgs.tidebot.gitops = dockerImageFilter
+                        else if config.Env == "tidebot"
+                            yamlFileParsed.pkgs.tidebot.gitops = dockerImageFilter
                         else
                             yamlFileParsed.environments[config.Env].tidepool.gitops[platform] = dockerImageFilter
                     newYamlFileUpdated = YAML.stringify(yamlFileParsed)
