@@ -24,6 +24,7 @@ eventTypesRaw = process.env['HUBOT_GITHUB_EVENT_NOTIFIER_TYPES']
 Base64 = require('js-base64').Base64;
 eventTypes = []
 environmentToRepoMap = {
+    "tidebot": "cluster-shared"
     "qa1": "cluster-qa1",
     "qa2": "cluster-qa2",
     "int": "cluster-integration",
@@ -74,13 +75,16 @@ module.exports = (robot) ->
                     }
                 serviceBranch = branch.head.ref
                 config = prCommentEnvExtractor(comments)
+                tidebotK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Env}/tidebot-helmrelease.yaml"
                 kubernetesGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
                 environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
+                
                 repoToServices = (serviceRepo) ->
                     if serviceRepo == "platform"
                         ["data", "blob", "auth", "image", "migrations", "notification", "task", "tools", "user"]
                     else
                         [serviceRepo]
+                
                 yamlFileEncode = (ref, changeAnnotations) ->
                     yamlFileDecoded = Base64.decode(ref.content)
                     yamlFileParsed = YAML.parse(yamlFileDecoded)
@@ -103,18 +107,30 @@ module.exports = (robot) ->
                     }
                 github.handleErrors (response) ->
                     console.log "Oh no! #{JSON.stringify(response)}!"
+                
                 github.get environmentValuesYamlFile, (ref) ->
                     yamlFileEncodeForValues = yamlFileEncode(ref, false)
                     deploy = deployYamlFile ref, yamlFileEncodeForValues, sender, serviceRepo, serviceBranch, config
                     github.put environmentValuesYamlFile, deploy, (ref) ->
                         console.log "#{deploy.message}"
                         robot.messageRoom room, "#{deploy.message}"
-                github.get kubernetesGithubYamlFile, (ref) -> 
-                    yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
-                    deploy = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
-                    github.put kubernetesGithubYamlFile, deploy, (ref) ->
-                        console.log "#{deploy.message}"
-                        robot.messageRoom room, "#{deploy.message}"
+                
+                if serviceRepo == "slack-tidebot"
+                    github.get tidebotK8GithubYamlFile, (ref) -> 
+                        yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
+                        deploy = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
+                        github.put tidebotK8GithubYamlFile, deploy, (ref) ->
+                            console.log "#{deploy.message}"
+                            robot.messageRoom room, "#{deploy.message}"
+                
+                else
+                    github.get kubernetesGithubYamlFile, (ref) -> 
+                        yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
+                        deploy = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
+                        github.put kubernetesGithubYamlFile, deploy, (ref) ->
+                            console.log "#{deploy.message}"
+                            robot.messageRoom room, "#{deploy.message}"
+            
             announceRepoEvent adapter, datas, eventType, (what) ->
                 robot.messageRoom room, what
             res.send "OK"
