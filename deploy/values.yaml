@@ -10,7 +10,7 @@ configmap:
     HUBOT_SLACK_ROOMS: "tidebot,github-events"
 deployment:
   podAnnotations: {}
-  image: tidepool/tidebot:latest
+  image: tidepool/slack-tidebot:latest
 resources: {}
 securityContext: {}
 hpa:
