@@ -94,7 +94,7 @@ module.exports = (robot) ->
                         repoDestination = "fluxcd.io/tag." + platform
                         if changeAnnotations
                             yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
-                        else if serviceRepo == "slack-tidebot"
+                        else if platform == "slack-tidebot"
                             yamlFileParsed.pkgs.tidebot.gitops = dockerImageFilter
                         else
                             yamlFileParsed.environments[config.Env].tidepool.gitops[platform] = dockerImageFilter
