@@ -23,17 +23,35 @@ eventActions = require('./all')
 eventTypesRaw = process.env['HUBOT_GITHUB_EVENT_NOTIFIER_TYPES']
 Base64 = require('js-base64').Base64;
 eventTypes = []
-environmentToRepoMap = {
-    "tidebot": "cluster-shared",
+inputToRepoMap = {
+    "shared": "cluster-shared",
     "qa1": "cluster-qa1",
+    "dev": "cluster-qa1",
     "qa2": "cluster-qa2",
     "int": "cluster-integration",
     "integration": "cluster-integration",
     "prd": "cluster-production",
+    "prod": "cluster-production",
     "production": "cluster-production",
     "test": "integration-test",
     "stg": "cluster-staging",
     "staging": "cluster-staging"
+}
+inputToEnvironmentMap = {
+    "qa1": "qa1",
+    "dev": "qa1",
+    "qa2": "qa2",
+    "int": "external",
+    "integration": "external",
+    "prd": "production",
+    "prod": "production",
+    "production": "production",
+    "test": "integration-test",
+    "stg": "staging",
+    "staging": "staging"
+}
+serviceRepoToService = {
+    "slack-tidebot": "tidebot"
 }
 
 announceRepoEvent = (adapter, datas, eventType, cb) ->
@@ -64,24 +82,28 @@ module.exports = (robot) ->
         sender = datas.sender.login
         serviceRepo = datas.repository.name
         branches = datas.issue.pull_request.url
+        console.log "Get Service Repo Information"
         github.get branches, (branch) ->
+            console.log "Get Service Branch Information"
             # function that takes users pr comment and extracts the Repo and Environment
             prCommentEnvExtractor = (comments) ->
                 match = comments.match(/^.*?\/\bdeploy\s+([-_\.a-zA-z0-9]+)\s*?/)
                 if match == null
                     console.log "This command to deploy to #{match[1]} is not valid or the environment #{match[1]} does not exist."
                 {
-                    Env: match[1]
-                    Repo: environmentToRepoMap[match[1]],
+                    Env: inputToEnvironmentMap[match[1]],
+                    Repo: inputToRepoMap[match[1]],
+                    Service: serviceRepoToService[serviceRepo]
                 }
             serviceBranch = branch.head.ref
             config = prCommentEnvExtractor(comments)
-            tidebotK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Env}/tidebot-helmrelease.yaml"
-            kubernetesGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
+            packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
+            tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
             
             repoToServices = (serviceRepo) ->
                 if serviceRepo == "platform"
+                    console.log "Service repo is platform. adding platform services to kubernetes"
                     ["data", "blob", "auth", "image", "migrations", "notification", "task", "tools", "user"]
                 else
                     [serviceRepo]
@@ -94,10 +116,13 @@ module.exports = (robot) ->
                 for platform in theList
                     repoDestination = "fluxcd.io/tag." + platform
                     if changeAnnotations
+                        console.log "Change Annotations is true so parsed yaml file == tidepoolGithubYamlFile"
                         yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
-                    else if config.Env == "tidebot"
-                        yamlFileParsed.pkgs.tidebot.gitops = dockerImageFilter
+                    else if config.Service
+                        console.log "Change Annotations is false and service is an external service so parsed yaml file == external environmentValuesYamlFile"
+                        yamlFileParsed.pkgs[config.Service].gitops = dockerImageFilter
                     else
+                        console.log "Change Annotations is false and service is a tidepool service so parsed yaml file == environmentValuesYamlFile"
                         yamlFileParsed.environments[config.Env].tidepool.gitops[platform] = dockerImageFilter
                 newYamlFileUpdated = YAML.stringify(yamlFileParsed)
                 Base64.encode(newYamlFileUpdated)
@@ -112,26 +137,32 @@ module.exports = (robot) ->
                 console.log "Oh no! #{JSON.stringify(response)}!"
             
             github.get environmentValuesYamlFile, (ref) ->
+                console.log "Deploy values"
                 yamlFileEncodeForValues = yamlFileEncode(ref, false)
-                deploy = deployYamlFile ref, yamlFileEncodeForValues, sender, serviceRepo, serviceBranch, config
-                github.put environmentValuesYamlFile, deploy, (ref) ->
-                    console.log "#{deploy.message}"
-                    robot.messageRoom room, "#{deploy.message}"
+                deployValues = deployYamlFile ref, yamlFileEncodeForValues, sender, serviceRepo, serviceBranch, config
+                console.log deployValues
+                github.put environmentValuesYamlFile, deployValues, (ref) ->
+                    console.log "#{deployValues.message}"
+                    robot.messageRoom room, "#{deployValues.message}"
             
-            if config.Env == "tidebot"
-                github.get tidebotK8GithubYamlFile, (ref) -> 
+            if config.Service
+                github.get packageK8GithubYamlFile, (ref) -> 
+                    console.log "Deploy package"
                     yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
-                    deploy = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
-                    github.put tidebotK8GithubYamlFile, deploy, (ref) ->
-                        console.log "#{deploy.message}"
-                        robot.messageRoom room, "#{deploy.message}"
+                    deployPackage = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
+                    console.log deployPackage
+                    github.put packageK8GithubYamlFile, deployPackage, (ref) ->
+                        console.log "#{deployPackage.message}"
+                        robot.messageRoom room, "#{deployPackage.message}"
             else
-                github.get kubernetesGithubYamlFile, (ref) -> 
+                github.get tidepoolGithubYamlFile, (ref) -> 
+                    console.log "Deploy tidepool"
                     yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
-                    deploy = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
-                    github.put kubernetesGithubYamlFile, deploy, (ref) ->
-                        console.log "#{deploy.message}"
-                        robot.messageRoom room, "#{deploy.message}"
+                    deployTidepool = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
+                    console.log deployTidepool
+                    github.put tidepoolGithubYamlFile, deployTidepool, (ref) ->
+                        console.log "#{deployTidepool.message}"
+                        robot.messageRoom room, "#{deployTidepool.message}"
             
             announceRepoEvent adapter, datas, eventType, (what) ->
                 robot.messageRoom room, what
