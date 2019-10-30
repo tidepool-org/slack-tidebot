@@ -95,7 +95,7 @@ module.exports = (robot) ->
                         if changeAnnotations
                             yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
                         else if serviceRepo == "slack-tidebot"
-                            pkgs.tidebot.gitops[platform] = dockerImageFilter
+                            pkgs.tidebot.gitops = dockerImageFilter
                         else
                             yamlFileParsed.environments[config.Env].tidepool.gitops[platform] = dockerImageFilter
                     newYamlFileUpdated = YAML.stringify(yamlFileParsed)
