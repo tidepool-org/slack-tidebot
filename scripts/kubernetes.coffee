@@ -140,6 +140,7 @@ module.exports = (robot) ->
                 console.log "Deploy values"
                 yamlFileEncodeForValues = yamlFileEncode(ref, false)
                 deploy = deployYamlFile ref, yamlFileEncodeForValues, sender, serviceRepo, serviceBranch, config
+                console.log deploy
                 github.put environmentValuesYamlFile, deploy, (ref) ->
                     console.log "#{deploy.message}"
                     robot.messageRoom room, "#{deploy.message}"
@@ -149,6 +150,7 @@ module.exports = (robot) ->
                     console.log "Deploy package"
                     yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
                     deploy = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
+                    console.log deploy
                     github.put packageK8GithubYamlFile, deploy, (ref) ->
                         console.log "#{deploy.message}"
                         robot.messageRoom room, "#{deploy.message}"
@@ -157,6 +159,7 @@ module.exports = (robot) ->
                     console.log "Deploy tidepool"
                     yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
                     deploy = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
+                    console.log deploy
                     github.put tidepoolGithubYamlFile, deploy, (ref) ->
                         console.log "#{deploy.message}"
                         robot.messageRoom room, "#{deploy.message}"
