@@ -24,7 +24,7 @@ eventTypesRaw = process.env['HUBOT_GITHUB_EVENT_NOTIFIER_TYPES']
 Base64 = require('js-base64').Base64;
 eventTypes = []
 environmentToRepoMap = {
-    "tidebot": "cluster-shared"
+    "tidebot": "cluster-shared",
     "qa1": "cluster-qa1",
     "qa2": "cluster-qa2",
     "int": "cluster-integration",
@@ -32,8 +32,8 @@ environmentToRepoMap = {
     "prd": "cluster-production",
     "production": "cluster-production",
     "test": "integration-test",
-    "stg": "cluster-staging"
-    "staging": "cluster-staging"
+    "stg": "cluster-staging",
+    "staging": "cluster-staging",
 }
 
 announceRepoEvent = (adapter, datas, eventType, cb) ->
