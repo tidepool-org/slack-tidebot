@@ -139,8 +139,8 @@ module.exports = (robot) ->
             github.get environmentValuesYamlFile, (ref) ->
                 console.log "Deploy values"
                 yamlFileEncodeForValues = yamlFileEncode(ref, false)
-                deploy = deployYamlFile ref, yamlFileEncodeForValues, sender, serviceRepo, serviceBranch, config
-                console.log deploy
+                deployValues = deployYamlFile ref, yamlFileEncodeForValues, sender, serviceRepo, serviceBranch, config
+                console.log deployValues
                 github.put environmentValuesYamlFile, deploy, (ref) ->
                     console.log "#{deploy.message}"
                     robot.messageRoom room, "#{deploy.message}"
@@ -149,8 +149,8 @@ module.exports = (robot) ->
                 github.get packageK8GithubYamlFile, (ref) -> 
                     console.log "Deploy package"
                     yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
-                    deploy = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
-                    console.log deploy
+                    deployPackage = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
+                    console.log deployPackage
                     github.put packageK8GithubYamlFile, deploy, (ref) ->
                         console.log "#{deploy.message}"
                         robot.messageRoom room, "#{deploy.message}"
@@ -158,8 +158,8 @@ module.exports = (robot) ->
                 github.get tidepoolGithubYamlFile, (ref) -> 
                     console.log "Deploy tidepool"
                     yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
-                    deploy = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
-                    console.log deploy
+                    deployTidepool = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
+                    console.log deployTidepool
                     github.put tidepoolGithubYamlFile, deploy, (ref) ->
                         console.log "#{deploy.message}"
                         robot.messageRoom room, "#{deploy.message}"
