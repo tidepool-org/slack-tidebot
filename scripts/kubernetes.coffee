@@ -27,9 +27,12 @@ environmentToRepoMap = {
     "qa1": "cluster-qa1",
     "qa2": "cluster-qa2",
     "int": "cluster-integration",
+    "integration": "cluster-integration",
     "prd": "cluster-production",
+    "production": "cluster-production",
     "test": "integration-test",
     "stg": "cluster-staging"
+    "staging": "cluster-staging"
 }
 
 announceRepoEvent = (adapter, datas, eventType, cb) ->
