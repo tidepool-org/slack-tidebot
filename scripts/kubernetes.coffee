@@ -94,7 +94,7 @@ module.exports = (robot) ->
                         repoDestination = "fluxcd.io/tag." + platform
                         if changeAnnotations
                             yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
-                        else if platform == "slack-tidebot"
+                        else if config.env == "tidebot"
                             yamlFileParsed.pkgs.tidebot.gitops = dockerImageFilter
                         else
                             yamlFileParsed.environments[config.Env].tidepool.gitops[platform] = dockerImageFilter
@@ -117,7 +117,7 @@ module.exports = (robot) ->
                         console.log "#{deploy.message}"
                         robot.messageRoom room, "#{deploy.message}"
                 
-                if serviceRepo == "slack-tidebot"
+                if config.env == "tidebot"
                     github.get tidebotK8GithubYamlFile, (ref) -> 
                         yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
                         deploy = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
