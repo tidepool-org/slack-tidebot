@@ -32,6 +32,8 @@ spec:
     spec:
       containers:
       - env:
+        - name: HUBOT_CONCURRENT_REQUESTS
+          value: "1"
         - name: HUBOT_GITHUB_TOKEN
           valueFrom:
             secretKeyRef:
