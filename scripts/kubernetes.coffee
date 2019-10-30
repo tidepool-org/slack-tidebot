@@ -33,7 +33,7 @@ environmentToRepoMap = {
     "production": "cluster-production",
     "test": "integration-test",
     "stg": "cluster-staging",
-    "staging": "cluster-staging",
+    "staging": "cluster-staging"
 }
 
 announceRepoEvent = (adapter, datas, eventType, cb) ->
