@@ -103,6 +103,7 @@ module.exports = (robot) ->
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
             tidebotPostPrComment = "repos/tidepool-org/#{config.Repo}/issues/#{issueNumber}/comments"
+            robot.message room, issueNumber
             
             repoToServices = (serviceRepo) ->
                 if serviceRepo == "platform"
@@ -143,8 +144,8 @@ module.exports = (robot) ->
             tidebotCommentBody = tidebotCommentBodyInitializer sender, serviceRepo, serviceBranch, config
             github.handleErrors (response) ->
                 error = "Error: #{response.statusCode} #{response.error}!"
-                github.post tidebotPostPrComment, error, (ref) ->
-                    console.log error
+                # github.post tidebotPostPrComment, error, (ref) ->
+                console.log error
             
             github.get environmentValuesYamlFile, (ref) ->
                 console.log "Deploy values"
