@@ -147,7 +147,7 @@ module.exports = (robot) ->
             tidebotCommentBody = tidebotCommentBodyInitializer sender, serviceRepo, serviceBranch, config
             github.handleErrors (response) ->
                 github.post tidebotPostPrComment, tidebotCommentBody.error, (ref) ->
-                    console.log error
+                    console.log JSON.stringify(tidebotCommentBody.error)
             
             github.get environmentValuesYamlFile, (ref) ->
                 console.log "Deploy values"
