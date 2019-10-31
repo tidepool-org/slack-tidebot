@@ -138,12 +138,16 @@ module.exports = (robot) ->
                 }
             tidebotCommentBodyInitializer = (sender, serviceRepo, serviceBranch, config) ->
                 {
-                    body: "#{sender} deployed #{serviceRepo} #{serviceBranch} branch to #{config.Env} environment"
+                    success: { body: "#{sender} deployed #{serviceRepo} #{serviceBranch} branch to #{config.Env} environment" },
+                    error: { body: "Error: #{response.statusCode} #{response.error}!" },
+                    values: { body: "#{sender} updated values.yaml file in #{config.Env}" },
+                    packagek8: { body: "#{sender} updated #{config.Service}-helmrelease.yaml file in #{config.Env}" },
+                    tidepoolGithub: { body: "#{sender} updated tidepool-helmrelease.yaml file in #{config.Env}" }
                 }
             tidebotCommentBody = tidebotCommentBodyInitializer sender, serviceRepo, serviceBranch, config
             github.handleErrors (response) ->
                 error = "Error: #{response.statusCode} #{response.error}!"
-                github.post tidebotPostPrComment, error, (ref) ->
+                github.post tidebotPostPrComment, tidebotCommentBody.error, (ref) ->
                     console.log error
             
             github.get environmentValuesYamlFile, (ref) ->
@@ -154,7 +158,7 @@ module.exports = (robot) ->
                 github.put environmentValuesYamlFile, deployValues, (ref) ->
                     console.log "#{deployValues.message}"
                     robot.messageRoom room, "#{deployValues.message}"
-                    github.post tidebotPostPrComment, "#{sender} updated values.yaml file in #{config.Env}"
+                    github.post tidebotPostPrComment, tidebotCommentBody.values
             
             if config.Service
                 github.get packageK8GithubYamlFile, (ref) -> 
@@ -165,7 +169,7 @@ module.exports = (robot) ->
                     github.put packageK8GithubYamlFile, deployPackage, (ref) ->
                         console.log "#{deployPackage.message}"
                         robot.messageRoom room, "#{deployPackage.message}"
-                        github.post tidebotPostPrComment, "#{sender} updated #{config.Service}-helmrelease.yaml file in #{config.Env}"
+                        github.post tidebotPostPrComment, tidebotCommentBody.packagek8
             else
                 github.get tidepoolGithubYamlFile, (ref) -> 
                     console.log "Deploy tidepool"
@@ -175,8 +179,8 @@ module.exports = (robot) ->
                     github.put tidepoolGithubYamlFile, deployTidepool, (ref) ->
                         console.log "#{deployTidepool.message}"
                         robot.messageRoom room, "#{deployTidepool.message}"
-                        github.post tidebotPostPrComment, "#{sender} updated tidepool-helmrelease.yaml file in #{config.Env}"
-            github.post tidebotPostPrComment, tidebotCommentBody
+                        github.post tidebotPostPrComment, tidebotCommentBody.tidepoolGithub
+            github.post tidebotPostPrComment, tidebotCommentBody.success
             announceRepoEvent adapter, datas, eventType, (what) ->
                 robot.messageRoom room, what
             res.send "OK"
