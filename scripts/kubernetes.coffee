@@ -146,7 +146,6 @@ module.exports = (robot) ->
                 }
             tidebotCommentBody = tidebotCommentBodyInitializer sender, serviceRepo, serviceBranch, config
             github.handleErrors (response) ->
-                error = "Error: #{response.statusCode} #{response.error}!"
                 github.post tidebotPostPrComment, tidebotCommentBody.error, (ref) ->
                     console.log error
             
