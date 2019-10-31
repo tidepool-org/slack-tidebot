@@ -147,7 +147,7 @@ module.exports = (robot) ->
             github.handleErrors (response) ->
                 error = { body: "Error: #{response.statusCode} #{response.error}!" }
                 github.post tidebotPostPrComment, error, (ref) ->
-                    console.log JSON.stringify(tidebotCommentBody.error)
+                    console.log JSON.stringify(error)
             
             github.get environmentValuesYamlFile, (ref) ->
                 console.log "Deploy values"
