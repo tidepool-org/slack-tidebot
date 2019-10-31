@@ -53,13 +53,13 @@ inputToEnvironmentMap = {
 serviceRepoToService = {
     "slack-tidebot": "tidebot"
 }
-
+​
 announceRepoEvent = (adapter, datas, eventType, cb) ->
   if eventActions[eventType]?
     eventActions[eventType](adapter, datas, cb)
   else
     cb("Received a new #{eventType} event, just so you know.")
-
+​
 module.exports = (robot) ->
     github = require('githubot')(robot)
     
@@ -79,8 +79,6 @@ module.exports = (robot) ->
             console.log "user is not authorized to for this command"
             return
         comments = datas.comment.body
-        getComment = datas.comment.url
-        issueNumber = datas.issue.number
         sender = datas.sender.login
         serviceRepo = datas.repository.name
         branches = datas.issue.pull_request.url
@@ -102,8 +100,6 @@ module.exports = (robot) ->
             packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
-            tidebotPostPrComment = "repos/tidepool-org/#{config.Repo}/issues/#{issueNumber}/comments"
-            robot.message room, issueNumber
             
             repoToServices = (serviceRepo) ->
                 if serviceRepo == "platform"
@@ -137,15 +133,8 @@ module.exports = (robot) ->
                     content: newYamlFileEncoded,
                     sha: ref.sha
                 }
-            tidebotCommentBodyInitializer = (sender, serviceRepo, serviceBranch, config) ->
-                {
-                    body: "#{sender} deployed #{serviceRepo} #{serviceBranch} branch to #{config.Env} environment"
-                }
-            tidebotCommentBody = tidebotCommentBodyInitializer sender, serviceRepo, serviceBranch, config
             github.handleErrors (response) ->
-                error = "Error: #{response.statusCode} #{response.error}!"
-                # github.post tidebotPostPrComment, error, (ref) ->
-                console.log error
+                console.log "Oh no! #{JSON.stringify(response)}!"
             
             github.get environmentValuesYamlFile, (ref) ->
                 console.log "Deploy values"
@@ -155,7 +144,6 @@ module.exports = (robot) ->
                 github.put environmentValuesYamlFile, deployValues, (ref) ->
                     console.log "#{deployValues.message}"
                     robot.messageRoom room, "#{deployValues.message}"
-                    github.post tidebotPostPrComment, "#{sender} updated values.yaml file in #{config.Env}"
             
             if config.Service
                 github.get packageK8GithubYamlFile, (ref) -> 
@@ -166,7 +154,6 @@ module.exports = (robot) ->
                     github.put packageK8GithubYamlFile, deployPackage, (ref) ->
                         console.log "#{deployPackage.message}"
                         robot.messageRoom room, "#{deployPackage.message}"
-                        github.post tidebotPostPrComment, "#{sender} updated #{config.Service}-helmrelease.yaml file in #{config.Env}"
             else
                 github.get tidepoolGithubYamlFile, (ref) -> 
                     console.log "Deploy tidepool"
@@ -176,9 +163,8 @@ module.exports = (robot) ->
                     github.put tidepoolGithubYamlFile, deployTidepool, (ref) ->
                         console.log "#{deployTidepool.message}"
                         robot.messageRoom room, "#{deployTidepool.message}"
-                        github.post tidebotPostPrComment, "#{sender} updated tidepool-helmrelease.yaml file in #{config.Env}"
-            github.post tidebotPostPrComment, tidebotCommentBody
+            
             announceRepoEvent adapter, datas, eventType, (what) ->
                 robot.messageRoom room, what
             res.send "OK"
-
+​
