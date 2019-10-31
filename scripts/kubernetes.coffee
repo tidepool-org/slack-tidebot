@@ -139,14 +139,14 @@ module.exports = (robot) ->
             tidebotCommentBodyInitializer = (sender, serviceRepo, serviceBranch, config) ->
                 {
                     success: { body: "#{sender} deployed #{serviceRepo} #{serviceBranch} branch to #{config.Env} environment" },
-                    error: { body: "Error: #{response.statusCode} #{response.error}!" },
                     values: { body: "#{sender} updated values.yaml file in #{config.Env}" },
                     packagek8: { body: "#{sender} updated #{config.Service}-helmrelease.yaml file in #{config.Env}" },
                     tidepoolGithub: { body: "#{sender} updated tidepool-helmrelease.yaml file in #{config.Env}" }
                 }
             tidebotCommentBody = tidebotCommentBodyInitializer sender, serviceRepo, serviceBranch, config
             github.handleErrors (response) ->
-                github.post tidebotPostPrComment, tidebotCommentBody.error, (ref) ->
+                error = { body: "Error: #{response.statusCode} #{response.error}!" }
+                github.post tidebotPostPrComment, error, (ref) ->
                     console.log JSON.stringify(tidebotCommentBody.error)
             
             github.get environmentValuesYamlFile, (ref) ->
