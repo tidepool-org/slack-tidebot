@@ -146,36 +146,36 @@ module.exports = (robot) ->
             tidebotCommentBody = tidebotCommentBodyInitializer sender, serviceRepo, serviceBranch, config
             github.handleErrors (response) ->
                 error = { body: "Error: #{response.statusCode} #{response.error}!" }
-                github.post tidebotPostPrComment, error, (ref) ->
+                github.post tidebotPostPrComment, error, (error) ->
                     console.log JSON.stringify(error)
             
-            github.get environmentValuesYamlFile, (ref) ->
+            github.get environmentValuesYamlFile, (ref, tidebotCommentBody) ->
                 console.log "Deploy values"
                 yamlFileEncodeForValues = yamlFileEncode(ref, false)
                 deployValues = deployYamlFile ref, yamlFileEncodeForValues, sender, serviceRepo, serviceBranch, config
                 console.log deployValues
-                github.put environmentValuesYamlFile, deployValues, (ref) ->
+                github.put environmentValuesYamlFile, deployValues, (ref, tidebotCommentBody) ->
                     console.log "#{deployValues.message}"
                     robot.messageRoom room, "#{deployValues.message}"
                     github.post tidebotPostPrComment, tidebotCommentBody.values
             
             if config.Service
-                github.get packageK8GithubYamlFile, (ref) -> 
+                github.get packageK8GithubYamlFile, (ref, tidebotCommentBody) -> 
                     console.log "Deploy package"
                     yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
                     deployPackage = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
                     console.log deployPackage
-                    github.put packageK8GithubYamlFile, deployPackage, (ref) ->
+                    github.put packageK8GithubYamlFile, deployPackage, (ref, tidebotCommentBody) ->
                         console.log "#{deployPackage.message}"
                         robot.messageRoom room, "#{deployPackage.message}"
                         github.post tidebotPostPrComment, tidebotCommentBody.packagek8
             else
-                github.get tidepoolGithubYamlFile, (ref) -> 
+                github.get tidepoolGithubYamlFile, (ref, tidebotCommentBody) -> 
                     console.log "Deploy tidepool"
                     yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
                     deployTidepool = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
                     console.log deployTidepool
-                    github.put tidepoolGithubYamlFile, deployTidepool, (ref) ->
+                    github.put tidepoolGithubYamlFile, deployTidepool, (ref, tidebotCommentBody) ->
                         console.log "#{deployTidepool.message}"
                         robot.messageRoom room, "#{deployTidepool.message}"
                         github.post tidebotPostPrComment, tidebotCommentBody.tidepoolGithub
