@@ -103,6 +103,7 @@ module.exports = (robot) ->
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
             tidebotPostPrComment = "repos/tidepool-org/#{config.Repo}/issues/#{issueNumber}/comments"
+            console.log "#{tidebotPostPrComment}: This is the comment post endpoint /repos/:owner/:repo/issues/:issue_number/comments #{issueNumber} PR issue number should match"
             
             repoToServices = (serviceRepo) ->
                 if serviceRepo == "platform"
@@ -126,7 +127,6 @@ module.exports = (robot) ->
                         yamlFileParsed.pkgs[config.Service].gitops = dockerImageFilter
                     else
                         console.log "Change Annotations is false and service is a tidepool service so parsed yaml file == environmentValuesYamlFile"
-                        console.log "#{yamlFileParsed}"
                         console.log "#{config} THIS SHOULD BE INTEGRATION_TEST"
                         yamlFileParsed.environments[config.Env].tidepool.gitops[platform] = dockerImageFilter
                 newYamlFileUpdated = YAML.stringify(yamlFileParsed)
@@ -146,48 +146,58 @@ module.exports = (robot) ->
                     tidepoolGithub: { body: "#{sender} updated tidepool-helmrelease.yaml file in #{config.Env}" }
                 }
             tidebotCommentBody = tidebotCommentBodyInitializer sender, serviceRepo, serviceBranch, config
+            console.log "#{tidebotCommentBody}: Full Original tidebout comment body"
             github.handleErrors (response) ->
                 errorMessage = { body: "Error: #{response.statusCode} #{response.error}!" }
-                github.post tidebotPostPrComment, errorMessage, (error) ->
-                    console.log "#{error.body}"
+                github.post tidebotPostPrComment, errorMessage, (error, res) ->
+                    console.log "#{error.body.body}"
+                    res.send "error"
             
             github.get environmentValuesYamlFile, (ref) ->
                 console.log "Deploy values"
-                yamlFileEncodeForValues = yamlFileEncode(ref, false)
+                yamlFileEncodeForValues = yamlFileEncode ref, false
                 deployValues = deployYamlFile ref, yamlFileEncodeForValues, sender, serviceRepo, serviceBranch, config
                 console.log deployValues
                 github.put environmentValuesYamlFile, deployValues, (ref) ->
                     console.log "#{deployValues.message}"
                     robot.messageRoom room, "#{deployValues.message}"
-                    github.post tidebotPostPrComment, tidebotCommentBody.values, (ref) ->
-                        console.log "#{ref.body}"
+                    github.post tidebotPostPrComment, tidebotCommentBody.values, (req, res) ->
+                        console.log tidebotCommentBody.values
+                        console.log "#{req.body.body}"
+                        res.send "Deploy values"
             
             if config.Service
                 github.get packageK8GithubYamlFile, (ref) -> 
                     console.log "Deploy package"
-                    yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
+                    yamlFileEncodeForKubeConfig = yamlFileEncode ref, true
                     deployPackage = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
                     console.log deployPackage
                     github.put packageK8GithubYamlFile, deployPackage, (ref) ->
                         console.log "#{deployPackage.message}"
                         robot.messageRoom room, "#{deployPackage.message}"
-                        github.post tidebotPostPrComment, tidebotCommentBody.packagek8, (ref) ->
-                            console.log "#{ref.body}"
+                        github.post tidebotPostPrComment, tidebotCommentBody.packagek8, (req, res) ->
+                            console.log tidebotCommentBody.packagek8
+                            console.log req.body.body
+                            res.send "Deploy package"
             
             else
                 github.get tidepoolGithubYamlFile, (ref) -> 
                     console.log "Deploy tidepool"
-                    yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
+                    yamlFileEncodeForKubeConfig = yamlFileEncode ref, true
                     deployTidepool = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
                     console.log deployTidepool
                     github.put tidepoolGithubYamlFile, deployTidepool, (ref) ->
                         console.log "#{deployTidepool.message}"
                         robot.messageRoom room, "#{deployTidepool.message}"
-                        github.post tidebotPostPrComment, tidebotCommentBody.tidepoolGithub, (ref) ->
-                            console.log "#{ref.body}"
+                        github.post tidebotPostPrComment, tidebotCommentBody.tidepoolGithub, (req, res) ->
+                            console.log tidebotCommentBody.tidepoolGithub
+                            console.log req.body.body
+                            res.send "Deploy tidepool"
             
-            github.post tidebotPostPrComment, tidebotCommentBody.success, (ref) ->
-                console.log "#{ref.body}"
+            github.post tidebotPostPrComment, tidebotCommentBody.success, (req, res) ->
+                console.log tidebotCommentBody.success
+                console.log req.body.body
+                res.send "Deploy Success"
             announceRepoEvent adapter, datas, eventType, (what) ->
                 robot.messageRoom room, what
             res.send "OK"
