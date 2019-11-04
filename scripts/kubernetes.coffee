@@ -16,7 +16,7 @@
 #   You will need to create and set HUBOT_GITHUB_TOKEN.
 #   The token will need to be made from a user that has access to repo(s)
 #   you want hubot to interact with.
-#
+# test
 YAML = require('yaml')
 HubotSlack = require('hubot-slack')
 eventActions = require('./all')
