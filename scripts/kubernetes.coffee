@@ -147,47 +147,47 @@ module.exports = (robot) ->
                 }
             tidebotCommentBody = tidebotCommentBodyInitializer sender, serviceRepo, serviceBranch, config
             github.handleErrors (response) ->
-                error = { body: "Error: #{response.statusCode} #{response.error}!" }
-                github.post tidebotPostPrComment, error, (error) ->
-                    console.log JSON.stringify(error)
+                errorMessage = { body: "Error: #{response.statusCode} #{response.error}!" }
+                github.post tidebotPostPrComment, errorMessage, (error) ->
+                    console.log "#{error.body}"
             
-            github.get environmentValuesYamlFile, (ref, tidebotCommentBody) ->
+            github.get environmentValuesYamlFile, (ref) ->
                 console.log "Deploy values"
                 yamlFileEncodeForValues = yamlFileEncode(ref, false)
                 deployValues = deployYamlFile ref, yamlFileEncodeForValues, sender, serviceRepo, serviceBranch, config
                 console.log deployValues
-                github.put environmentValuesYamlFile, deployValues, (ref, tidebotCommentBody) ->
+                github.put environmentValuesYamlFile, deployValues, (ref) ->
                     console.log "#{deployValues.message}"
                     robot.messageRoom room, "#{deployValues.message}"
-                    github.post tidebotPostPrComment, tidebotCommentBody.values, (tidebotCommentBody) ->
-                        console.log "#{tidebotCommentBody.values}"
+                    github.post tidebotPostPrComment, tidebotCommentBody.values, (ref) ->
+                        console.log "#{ref.body}"
             
             if config.Service
-                github.get packageK8GithubYamlFile, (ref, tidebotCommentBody) -> 
+                github.get packageK8GithubYamlFile, (ref) -> 
                     console.log "Deploy package"
                     yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
                     deployPackage = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
                     console.log deployPackage
-                    github.put packageK8GithubYamlFile, deployPackage, (ref, tidebotCommentBody) ->
+                    github.put packageK8GithubYamlFile, deployPackage, (ref) ->
                         console.log "#{deployPackage.message}"
                         robot.messageRoom room, "#{deployPackage.message}"
-                        github.post tidebotPostPrComment, tidebotCommentBody.packagek8, (tidebotCommentBody) ->
-                            console.log "#{tidebotCommentBody.values}"
+                        github.post tidebotPostPrComment, tidebotCommentBody.packagek8, (ref) ->
+                            console.log "#{ref.body}"
             
             else
-                github.get tidepoolGithubYamlFile, (ref, tidebotCommentBody) -> 
+                github.get tidepoolGithubYamlFile, (ref) -> 
                     console.log "Deploy tidepool"
                     yamlFileEncodeForKubeConfig = yamlFileEncode(ref, true)
                     deployTidepool = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
                     console.log deployTidepool
-                    github.put tidepoolGithubYamlFile, deployTidepool, (ref, tidebotCommentBody) ->
+                    github.put tidepoolGithubYamlFile, deployTidepool, (ref) ->
                         console.log "#{deployTidepool.message}"
                         robot.messageRoom room, "#{deployTidepool.message}"
-                        github.post tidebotPostPrComment, tidebotCommentBody.tidepoolGithub, (tidebotCommentBody) ->
-                            console.log "#{tidebotCommentBody.values}"
+                        github.post tidebotPostPrComment, tidebotCommentBody.tidepoolGithub, (ref) ->
+                            console.log "#{ref.body}"
             
-            github.post tidebotPostPrComment, tidebotCommentBody.success, (tidebotCommentBody) ->
-                console.log "#{tidebotCommentBody.values}"
+            github.post tidebotPostPrComment, tidebotCommentBody.success, (ref) ->
+                console.log "#{ref.body}"
             announceRepoEvent adapter, datas, eventType, (what) ->
                 robot.messageRoom room, what
             res.send "OK"
