@@ -127,7 +127,8 @@ module.exports = (robot) ->
                         yamlFileParsed.pkgs[config.Service].gitops = dockerImageFilter
                     else
                         console.log "Change Annotations is false and service is a tidepool service so parsed yaml file == environmentValuesYamlFile"
-                        console.log "#{config} THIS SHOULD BE INTEGRATION_TEST"
+                        configString = JSON.stringify(config)
+                        console.log "#{configString} THIS SHOULD BE INTEGRATION_TEST"
                         yamlFileParsed.environments[config.Env].tidepool.gitops[platform] = dockerImageFilter
                 newYamlFileUpdated = YAML.stringify(yamlFileParsed)
                 Base64.encode(newYamlFileUpdated)
@@ -146,7 +147,8 @@ module.exports = (robot) ->
                     tidepoolGithub: { body: "#{sender} updated tidepool-helmrelease.yaml file in #{config.Env}" }
                 }
             tidebotCommentBody = tidebotCommentBodyInitializer sender, serviceRepo, serviceBranch, config
-            console.log "#{tidebotCommentBody}: Full Original tidebout comment body"
+            tidebotCommentBodyString = JSON.stringify(tidebotCommentBody)
+            console.log "#{tidebotCommentBodyString}: Full Original tidebout comment body"
             github.handleErrors (response) ->
                 errorMessage = { body: "Error: #{response.statusCode} #{response.error}!" }
                 github.post tidebotPostPrComment, errorMessage, (error, res) ->
