@@ -127,8 +127,9 @@ module.exports = (robot) ->
                         yamlFileParsed.pkgs[config.Service].gitops = dockerImageFilter
                     else
                         console.log "Change Annotations is false and service is a tidepool service so parsed yaml file == environmentValuesYamlFile"
-                        configString = JSON.stringify(config)
-                        console.log "#{configString} THIS SHOULD BE INTEGRATION_TEST"
+                        configString = JSON.stringify(config.Env)
+                        console.log "#{configString} THIS SHOULD BE INTEGRATION-TEST"
+                        console.log "Parsed YAML file #{yamlFileParsed}"
                         yamlFileParsed.environments[config.Env].tidepool.gitops[platform] = dockerImageFilter
                 newYamlFileUpdated = YAML.stringify(yamlFileParsed)
                 Base64.encode(newYamlFileUpdated)
