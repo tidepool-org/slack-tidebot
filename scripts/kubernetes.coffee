@@ -136,10 +136,7 @@ module.exports = (robot) ->
                 
             deployYamlFile = (ref, newYamlFileEncoded, sender, serviceRepo, serviceBranch, config, changeAnnotations) ->
                 {
-                    if changeAnnotations
-                        message: "#{sender} updated helmrelease.yaml file in #{config.Env}",
-                    else
-                        message: "#{sender} updated values.yaml file in #{config.Env}",
+                    message: changeAnnotations ? "#{sender} updated helmrelease.yaml file in #{config.Env}", : "#{sender} updated values.yaml file in #{config.Env}",
                     content: newYamlFileEncoded,
                     sha: ref.sha
                 }
