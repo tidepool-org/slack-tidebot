@@ -199,7 +199,7 @@ module.exports = (robot) ->
             github.post tidebotPostPrComment, tidebotCommentBody.success, (req) ->
                 console.log tidebotCommentBody.success
                 console.log "#{req.body}: This is the tidebot comment post body for success"
-            announceRepoEvent adapter, datas, eventType, (what) ->
-                robot.messageRoom room, what
-            res.send "OK"
+        announceRepoEvent adapter, datas, eventType, (what) ->
+            robot.messageRoom room, what
+        res.send "OK"
 
