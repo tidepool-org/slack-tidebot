@@ -71,7 +71,7 @@ module.exports = (robot) ->
         if datas.comment == undefined
             announceRepoEvent adapter, datas, eventType, (what) ->
                 robot.messageRoom room, what
-            res.send ("OK")
+                res.send ("OK")
             return
         
         authorized = datas.comment.author_association
@@ -150,9 +150,8 @@ module.exports = (robot) ->
             
             github.handleErrors (response) ->
                 errorMessage = { body: "Error: #{response.statusCode} #{response.error}!" }
-                .then () ->
-                    github.post tidebotPostPrComment, errorMessage, (req) ->
-                        console.log "TIDEBOT COMMENT POST ERROR MESSAGE: #{req.body}"
+                github.post tidebotPostPrComment, errorMessage, (req) ->
+                    console.log "TIDEBOT COMMENT POST ERROR MESSAGE: #{req.body}"
             
             github.get environmentValuesYamlFile, (ref) ->
                 console.log "Deploy values yaml retrieved for updating"
@@ -163,9 +162,8 @@ module.exports = (robot) ->
                     robot.messageRoom room, "#{deployValues.message}"
                     console.log "COMMENT BODY AFTER SUCCESFULL VALUES FILE UPDATE #{tidebotCommentBody.values.body}"
                     console.log "COMMENT PATH: #{tidebotPostPrComment}"
-                .then () ->
-                    github.post tidebotPostPrComment, tidebotCommentBody.values, (req) ->
-                        console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR VALUES FILE IS SUCCESSFUL: #{req.body}"
+                github.post tidebotPostPrComment, tidebotCommentBody.values, (req) ->
+                    console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR VALUES FILE IS SUCCESSFUL: #{req.body}"
             
             if config.Service
                 github.get packageK8GithubYamlFile, (ref) -> 
@@ -177,8 +175,7 @@ module.exports = (robot) ->
                         robot.messageRoom room, "#{deployPackage.message}"
                         console.log "COMMENT BODY AFTER SUCCESFULL PACKAGE FILE UPDATE: #{tidebotCommentBody.packagek8.body}"
                         console.log "COMMENT PATH: #{tidebotPostPrComment}"                       
-                    .then () ->
-                        github.post tidebotPostPrComment, tidebotCommentBody.packagek8, (req) ->
+                    github.post tidebotPostPrComment, tidebotCommentBody.packagek8, (req) ->
                         console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR PACKAGE YAML FILE IS SUCCESSFUL: #{req.body}"
             
             else
@@ -187,13 +184,12 @@ module.exports = (robot) ->
                     yamlFileEncodeForKubeConfig = yamlFileEncode ref, true
                     deployTidepool = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config, true
                     github.put tidepoolGithubYamlFile, deployTidepool, (ref) ->
-                        console.log "#{deployTidepool.message}: THIS WILL SHOW IF TIDEPOOL SERVICE HELMRELEASE FILE SUCCESSFULLY UPDATES"
+                        console.log "THIS WILL SHOW IF TIDEPOOL SERVICE HELMRELEASE FILE SUCCESSFULLY UPDATES: #{deployTidepool.message}"
                         robot.messageRoom room, "#{deployTidepool.message}"
                         console.log "COMMENT BODY AFTER SUCCESFULL TIDEPOOL SERVICE HELRELEASE FILE UPDATE: #{tidebotCommentBody.tidepoolGithub.body}"
                         console.log "COMMENT PATH: #{tidebotPostPrComment}"
-                    .then () ->
-                        github.post tidebotPostPrComment, tidebotCommentBody.tidepoolGithub, (req) ->
-                            console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR TIDEPOOL SERVICE HELMRELEASE FILE IS SUCCESSFUL: #{req.body}"
+                    github.post tidebotPostPrComment, tidebotCommentBody.tidepoolGithub, (req) ->
+                        console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR TIDEPOOL SERVICE HELMRELEASE FILE IS SUCCESSFUL: #{req.body}"
             
             github.post tidebotPostPrComment, tidebotCommentBody.success, (req) ->
                 console.log tidebotCommentBody.success
@@ -201,7 +197,5 @@ module.exports = (robot) ->
         
         announceRepoEvent adapter, datas, eventType, (what) ->
             robot.messageRoom room, what
-        # setTimeout () ->
-        res.send "OK"
-        # ,   5 * 1000
+            res.send "OK"
 
