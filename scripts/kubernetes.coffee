@@ -127,16 +127,19 @@ module.exports = (robot) ->
                         yamlFileParsed.pkgs[config.Service].gitops = dockerImageFilter
                     else
                         console.log "Change Annotations is false and service is a tidepool service so parsed yaml file == environmentValuesYamlFile"
-                        configString = JSON.stringify(config.Env)
-                        console.log "#{configString} THIS SHOULD BE INTEGRATION-TEST"
-                        console.log "Parsed YAML file #{yamlFileParsed}"
+                        yamlFileParsedString = JSON.stringify(yamlFileParsed)
+                        console.log "#{config.Env} THIS SHOULD BE INTEGRATION-TEST"
+                        console.log "Parsed YAML file #{yamlFileParsedString}"
                         yamlFileParsed.environments[config.Env].tidepool.gitops[platform] = dockerImageFilter
                 newYamlFileUpdated = YAML.stringify(yamlFileParsed)
                 Base64.encode(newYamlFileUpdated)
                 
-            deployYamlFile = (ref, newYamlFileEncoded, sender, serviceRepo, serviceBranch, config) ->
+            deployYamlFile = (ref, newYamlFileEncoded, sender, serviceRepo, serviceBranch, config, changeAnnotations) ->
                 {
-                    message: "#{sender} deployed #{serviceRepo} #{serviceBranch} branch to #{config.Env} environment",
+                    if changeAnnotations
+                        message: "#{sender} updated helmrelease.yaml file in #{config.Env}",
+                    else
+                        message: "#{sender} updated values.yaml file in #{config.Env}",
                     content: newYamlFileEncoded,
                     sha: ref.sha
                 }
@@ -161,7 +164,7 @@ module.exports = (robot) ->
             github.get environmentValuesYamlFile, (ref) ->
                 console.log "Deploy values yaml retrieved for updating"
                 yamlFileEncodeForValues = yamlFileEncode ref, false
-                deployValues = deployYamlFile ref, yamlFileEncodeForValues, sender, serviceRepo, serviceBranch, config
+                deployValues = deployYamlFile ref, yamlFileEncodeForValues, sender, serviceRepo, serviceBranch, config, false
                 console.log deployValues
                 github.put environmentValuesYamlFile, deployValues, (ref) ->
                     console.log "#{deployValues.message}"
@@ -174,7 +177,7 @@ module.exports = (robot) ->
                 github.get packageK8GithubYamlFile, (ref) -> 
                     console.log "Deploy package service yaml retrieved for updating"
                     yamlFileEncodeForKubeConfig = yamlFileEncode ref, true
-                    deployPackage = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
+                    deployPackage = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config, true
                     console.log deployPackage
                     github.put packageK8GithubYamlFile, deployPackage, (ref) ->
                         console.log "#{deployPackage.message}"
@@ -187,7 +190,7 @@ module.exports = (robot) ->
                 github.get tidepoolGithubYamlFile, (ref) -> 
                     console.log "Deploy tidepool service yaml retrieved for updating"
                     yamlFileEncodeForKubeConfig = yamlFileEncode ref, true
-                    deployTidepool = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config
+                    deployTidepool = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config, true
                     console.log deployTidepool
                     github.put tidepoolGithubYamlFile, deployTidepool, (ref) ->
                         console.log "#{deployTidepool.message}"
