@@ -87,18 +87,19 @@ module.exports = (robot) ->
         console.log "Get Service Repo Information"
         github.get branches, (branch) ->
             console.log "Get Service Branch Information"
+            match = comments.match(/^.*?\/\b(deploy|query)\s+([-_\.a-zA-z0-9]+)\s*?/)
             # function that takes users pr comment and extracts the Repo and Environment
-            prCommentEnvExtractor = (comments) ->
-                match = comments.match(/^.*?\/\bdeploy\s+([-_\.a-zA-z0-9]+)\s*?/)
+            prCommentEnvExtractor = () ->
                 if match == null
                     console.log "This command to deploy to #{match[1]} is not valid or the environment #{match[1]} does not exist."
                 {
-                    Env: inputToEnvironmentMap[match[1]],
-                    Repo: inputToRepoMap[match[1]],
+                    Env: inputToEnvironmentMap[match[2]],
+                    Repo: inputToRepoMap[match[2]],
                     Service: serviceRepoToService[serviceRepo]
                 }
+                
             serviceBranch = branch.head.ref
-            config = prCommentEnvExtractor(comments)
+            config = prCommentEnvExtractor()
             packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
@@ -129,7 +130,18 @@ module.exports = (robot) ->
                         yamlFileParsed.environments[config.Env].tidepool.gitops[platform] = dockerImageFilter
                 newYamlFileUpdated = YAML.stringify(yamlFileParsed)
                 Base64.encode(newYamlFileUpdated)
-                
+
+            yamlFileDecodeForQuery = (ref) ->
+                yamlFileDecoded = Base64.decode(ref.content)
+                yamlFileParsed = YAML.parse(yamlFileDecoded)
+                theList = repoToServices serviceRepo
+                for platform in theList
+                    repoDestination = "fluxcd.io/tag." + platform
+                    if config.service
+                        { body: platform + ": " + yamlFileParsed.pkgs[config.Service].gitops[platform] }
+                    else
+                        { body: platform + ": " + yamlFileParsed.metadata.annotations[repoDestination] }
+
             deployYamlFile = (ref, newYamlFileEncoded, sender, serviceRepo, serviceBranch, config, changeAnnotations) ->
                 {
                     message: if changeAnnotations then "#{sender} updated helmrelease.yaml file in #{config.Env}" else "#{sender} updated values.yaml file in #{config.Env}",
@@ -153,48 +165,61 @@ module.exports = (robot) ->
                 github.post tidebotPostPrComment, errorMessage, (req) ->
                     console.log "TIDEBOT COMMENT POST ERROR MESSAGE: #{req.body}"
             
-            github.get environmentValuesYamlFile, (ref) ->
-                console.log "Deploy values yaml retrieved for updating"
-                yamlFileEncodeForValues = yamlFileEncode ref, false
-                deployValues = deployYamlFile ref, yamlFileEncodeForValues, sender, serviceRepo, serviceBranch, config, false
-                github.put environmentValuesYamlFile, deployValues, (ref) ->
-                    console.log "THIS WILL SHOW IF VALUES FILE SUCCESSFULLY UPDATES: #{deployValues.message}"
-                    robot.messageRoom room, "#{deployValues.message}"
-                    console.log "COMMENT BODY AFTER SUCCESFULL VALUES FILE UPDATE #{tidebotCommentBody.values.body}"
-                    console.log "COMMENT PATH: #{tidebotPostPrComment}"
-                github.post tidebotPostPrComment, tidebotCommentBody.values, (req) ->
-                    console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR VALUES FILE IS SUCCESSFUL: #{req.body}"
-            
-            if config.Service
-                github.get packageK8GithubYamlFile, (ref) -> 
-                    console.log "Deploy package service yaml retrieved for updating"
-                    yamlFileEncodeForKubeConfig = yamlFileEncode ref, true
-                    deployPackage = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config, true
-                    github.put packageK8GithubYamlFile, deployPackage, (ref) ->
-                        console.log "THIS WILL SHOW IF PACKAGE YAML FILE SUCCESSFULLY UPDATES: #{deployPackage.message}"
-                        robot.messageRoom room, "#{deployPackage.message}"
-                        console.log "COMMENT BODY AFTER SUCCESFULL PACKAGE FILE UPDATE: #{tidebotCommentBody.packagek8.body}"
-                        console.log "COMMENT PATH: #{tidebotPostPrComment}"                       
-                    github.post tidebotPostPrComment, tidebotCommentBody.packagek8, (req) ->
-                        console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR PACKAGE YAML FILE IS SUCCESSFUL: #{req.body}"
-            
-            else
-                github.get tidepoolGithubYamlFile, (ref) -> 
-                    console.log "Deploy tidepool service yaml retrieved for updating"
-                    yamlFileEncodeForKubeConfig = yamlFileEncode ref, true
-                    deployTidepool = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config, true
-                    github.put tidepoolGithubYamlFile, deployTidepool, (ref) ->
-                        console.log "THIS WILL SHOW IF TIDEPOOL SERVICE HELMRELEASE FILE SUCCESSFULLY UPDATES: #{deployTidepool.message}"
-                        robot.messageRoom room, "#{deployTidepool.message}"
-                        console.log "COMMENT BODY AFTER SUCCESFULL TIDEPOOL SERVICE HELRELEASE FILE UPDATE: #{tidebotCommentBody.tidepoolGithub.body}"
+            if match[1] == "deploy"
+                github.get environmentValuesYamlFile, (ref) ->
+                    console.log "Deploy values yaml retrieved for updating"
+                    yamlFileEncodeForValues = yamlFileEncode ref, false
+                    deployValues = deployYamlFile ref, yamlFileEncodeForValues, sender, serviceRepo, serviceBranch, config, false
+                    github.put environmentValuesYamlFile, deployValues, (ref) ->
+                        console.log "THIS WILL SHOW IF VALUES FILE SUCCESSFULLY UPDATES: #{deployValues.message}"
+                        robot.messageRoom room, "#{deployValues.message}"
+                        console.log "COMMENT BODY AFTER SUCCESFULL VALUES FILE UPDATE #{tidebotCommentBody.values.body}"
                         console.log "COMMENT PATH: #{tidebotPostPrComment}"
-                    github.post tidebotPostPrComment, tidebotCommentBody.tidepoolGithub, (req) ->
-                        console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR TIDEPOOL SERVICE HELMRELEASE FILE IS SUCCESSFUL: #{req.body}"
+                    github.post tidebotPostPrComment, tidebotCommentBody.values, (req) ->
+                        console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR VALUES FILE IS SUCCESSFUL: #{req.body}"
+                
+                if config.Service
+                    github.get packageK8GithubYamlFile, (ref) -> 
+                        console.log "Deploy package service yaml retrieved for updating"
+                        yamlFileEncodeForKubeConfig = yamlFileEncode ref, true
+                        deployPackage = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config, true
+                        github.put packageK8GithubYamlFile, deployPackage, (ref) ->
+                            console.log "THIS WILL SHOW IF PACKAGE YAML FILE SUCCESSFULLY UPDATES: #{deployPackage.message}"
+                            robot.messageRoom room, "#{deployPackage.message}"
+                            console.log "COMMENT BODY AFTER SUCCESFULL PACKAGE FILE UPDATE: #{tidebotCommentBody.packagek8.body}"
+                            console.log "COMMENT PATH: #{tidebotPostPrComment}"                       
+                        github.post tidebotPostPrComment, tidebotCommentBody.packagek8, (req) ->
+                            console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR PACKAGE YAML FILE IS SUCCESSFUL: #{req.body}"
+                
+                else
+                    github.get tidepoolGithubYamlFile, (ref) -> 
+                        console.log "Deploy tidepool service yaml retrieved for updating"
+                        yamlFileEncodeForKubeConfig = yamlFileEncode ref, true
+                        deployTidepool = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config, true
+                        github.put tidepoolGithubYamlFile, deployTidepool, (ref) ->
+                            console.log "THIS WILL SHOW IF TIDEPOOL SERVICE HELMRELEASE FILE SUCCESSFULLY UPDATES: #{deployTidepool.message}"
+                            robot.messageRoom room, "#{deployTidepool.message}"
+                            console.log "COMMENT BODY AFTER SUCCESFULL TIDEPOOL SERVICE HELRELEASE FILE UPDATE: #{tidebotCommentBody.tidepoolGithub.body}"
+                            console.log "COMMENT PATH: #{tidebotPostPrComment}"
+                        github.post tidebotPostPrComment, tidebotCommentBody.tidepoolGithub, (req) ->
+                            console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR TIDEPOOL SERVICE HELMRELEASE FILE IS SUCCESSFUL: #{req.body}"
+                
+                github.post tidebotPostPrComment, tidebotCommentBody.success, (req) ->
+                    console.log tidebotCommentBody.success
+                    console.log "#{req.body}: This is the tidebot comment post body for success"
             
-            github.post tidebotPostPrComment, tidebotCommentBody.success, (req) ->
-                console.log tidebotCommentBody.success
-                console.log "#{req.body}: This is the tidebot comment post body for success"
-        
+            else if match[1] == "query"
+                if config.Service
+                    github.get packageK8GithubYamlFile, (ref) -> 
+                        currentDeployedBranch = yamlFileDecodeForQuery ref
+                        github.post tidebotPostPrComment, currentDeployedBranch, (req) ->
+                            console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR QUERIED BRANCH DEPLOYED: #{req.body}"
+                else
+                    github.get tidepoolGithubYamlFile, (ref) -> 
+                        currentDeployedBranch = yamlFileDecodeForQuery ref
+                        github.post tidebotPostPrComment, currentDeployedBranch, (req) ->
+                            console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR QUERIED BRANCH DEPLOYED: #{req.body}"
+
         announceRepoEvent adapter, datas, eventType, (what) ->
             robot.messageRoom room, what
             res.send "OK"
