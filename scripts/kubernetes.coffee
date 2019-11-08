@@ -213,13 +213,13 @@ module.exports = (robot) ->
                     github.get packageK8GithubYamlFile, (ref) -> 
                         currentDeployedBranch = yamlFileDecodeForQuery ref
                         console.log currentDeployedBranch
-                        github.post tidebotPostPrComment, currentDeployedBranch, (req) ->
+                        github.post tidebotPostPrComment, currentDeployedBranch[0], (req) ->
                             console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR QUERIED BRANCH DEPLOYED: #{req.body}"
                 else
                     github.get tidepoolGithubYamlFile, (ref) -> 
                         currentDeployedBranch = yamlFileDecodeForQuery ref
                         console.log currentDeployedBranch
-                        github.post tidebotPostPrComment, currentDeployedBranch, (req) ->
+                        github.post tidebotPostPrComment, currentDeployedBranch[0], (req) ->
                             console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR QUERIED BRANCH DEPLOYED: #{req.body}"
 
         announceRepoEvent adapter, datas, eventType, (what) ->
