@@ -212,11 +212,13 @@ module.exports = (robot) ->
                 if config.Service
                     github.get packageK8GithubYamlFile, (ref) -> 
                         currentDeployedBranch = yamlFileDecodeForQuery ref
+                        console.log currentDeployedBranch
                         github.post tidebotPostPrComment, currentDeployedBranch, (req) ->
                             console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR QUERIED BRANCH DEPLOYED: #{req.body}"
                 else
                     github.get tidepoolGithubYamlFile, (ref) -> 
                         currentDeployedBranch = yamlFileDecodeForQuery ref
+                        console.log currentDeployedBranch
                         github.post tidebotPostPrComment, currentDeployedBranch, (req) ->
                             console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR QUERIED BRANCH DEPLOYED: #{req.body}"
 
