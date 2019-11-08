@@ -100,7 +100,6 @@ module.exports = (robot) ->
                 
             serviceBranch = branch.head.ref
             config = prCommentEnvExtractor()
-            packageK8Query = "repos/tidepool-org/#{serviceRepo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
             packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
@@ -208,7 +207,7 @@ module.exports = (robot) ->
             
             else if match[1] == "query"
                 if config.Service
-                    github.get packageK8Query, (ref) -> 
+                    github.get packageK8GithubYamlFile, (ref) -> 
                         currentDeployedBranch = yamlFileDecodeForQuery ref
                         console.log currentDeployedBranch
                         github.post tidebotPostPrComment, currentDeployedBranch[0], (req) ->
