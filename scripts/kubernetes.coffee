@@ -51,7 +51,7 @@ inputToEnvironmentMap = {
     "staging": "staging"
 }
 serviceRepoToService = {
-    "slack-tidebot": "tidebot"
+    "slack-tidebot": if match[1] = "query" then "slack-tidebot" else "tidebot"
 }
 
 announceRepoEvent = (adapter, datas, eventType, cb) ->
@@ -100,6 +100,7 @@ module.exports = (robot) ->
                 
             serviceBranch = branch.head.ref
             config = prCommentEnvExtractor()
+            packageK8query = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
             packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
