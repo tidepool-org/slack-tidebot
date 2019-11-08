@@ -155,7 +155,7 @@ module.exports = (robot) ->
                 }
             tidebotCommentBody = tidebotCommentBodyInitializer sender, serviceRepo, serviceBranch, config
             tidebotCommentBodyString = JSON.stringify(tidebotCommentBody)
-            console.log "FULL ORIGINAL TIDEBOT COMMENT BODY: #{tidebotCommentBodyString}"
+            # console.log "FULL ORIGINAL TIDEBOT COMMENT BODY: #{tidebotCommentBodyString}"
             
             github.handleErrors (response) ->
                 errorMessage = { body: "Error: #{response.statusCode} #{response.error}!" }
