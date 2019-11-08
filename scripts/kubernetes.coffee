@@ -103,7 +103,7 @@ module.exports = (robot) ->
             packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
-            tidebotPostPrComment = "repos/tidepool-org/#{config.Repo}/issues/#{issueNumber}/comments"
+            tidebotPostPrComment = "repos/tidepool-org/#{serviceRepo}/issues/#{issueNumber}/comments"
             
             repoToServices = (serviceRepo) ->
                 if serviceRepo == "platform"
