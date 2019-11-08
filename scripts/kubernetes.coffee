@@ -138,9 +138,9 @@ module.exports = (robot) ->
                 for platform in theList
                     repoDestination = "fluxcd.io/tag." + platform
                     if config.service
-                        { body: platform + ": " + yamlFileParsed.pkgs[config.Service].gitops[platform] }
+                        { query: { body: platform + ": " + yamlFileParsed.pkgs[config.Service].gitops[platform] } }
                     else
-                        { body: platform + ": " + yamlFileParsed.metadata.annotations[repoDestination] }
+                        { query: { body: platform + ": " + yamlFileParsed.metadata.annotations[repoDestination] } }
 
             deployYamlFile = (ref, newYamlFileEncoded, sender, serviceRepo, serviceBranch, config, changeAnnotations) ->
                 {
@@ -212,12 +212,12 @@ module.exports = (robot) ->
                 if config.Service
                     github.get packageK8GithubYamlFile, (ref) -> 
                         currentDeployedBranch = yamlFileDecodeForQuery ref
-                        github.post tidebotPostPrComment, currentDeployedBranch, (req) ->
+                        github.post tidebotPostPrComment, currentDeployedBranch.query, (req) ->
                             console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR QUERIED BRANCH DEPLOYED: #{req.body}"
                 else
                     github.get tidepoolGithubYamlFile, (ref) -> 
                         currentDeployedBranch = yamlFileDecodeForQuery ref
-                        github.post tidebotPostPrComment, currentDeployedBranch, (req) ->
+                        github.post tidebotPostPrComment, currentDeployedBranch.query, (req) ->
                             console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR QUERIED BRANCH DEPLOYED: #{req.body}"
 
         announceRepoEvent adapter, datas, eventType, (what) ->
