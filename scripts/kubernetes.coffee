@@ -153,9 +153,6 @@ module.exports = (robot) ->
                     values: { body: "#{sender} updated values.yaml file in #{config.Env}" },
                     tidepoolGithub: { body: "#{sender} updated tidepool-helmrelease.yaml file in #{config.Env}" }
                 }
-            tidebotCommentBody = tidebotCommentBodyInitializer sender, serviceRepo, serviceBranch, config
-            tidebotCommentBodyString = JSON.stringify(tidebotCommentBody)
-            # console.log "FULL ORIGINAL TIDEBOT COMMENT BODY: #{tidebotCommentBodyString}"
             
             github.handleErrors (response) ->
                 errorMessage = { body: "Error: #{response.statusCode} #{response.error}!" }
@@ -163,6 +160,9 @@ module.exports = (robot) ->
                     console.log "TIDEBOT COMMENT POST ERROR MESSAGE: #{req.body}"
             
             if match[1] == "deploy"
+                tidebotCommentBody = tidebotCommentBodyInitializer sender, serviceRepo, serviceBranch, config
+                tidebotCommentBodyString = JSON.stringify(tidebotCommentBody)
+                console.log "FULL ORIGINAL TIDEBOT COMMENT BODY: #{tidebotCommentBodyString}"
                 github.get environmentValuesYamlFile, (ref) ->
                     console.log "Deploy values yaml retrieved for updating"
                     yamlFileEncodeForValues = yamlFileEncode ref, false
