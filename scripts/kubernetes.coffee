@@ -138,8 +138,8 @@ module.exports = (robot) ->
                 for platform in theList
                     console.log "SERVICE REPO: #{platform}"
                     if config.Service
-                        {body: yamlFileParsed.spec.values.deployment}
-                    {body: yamlFileParsed.spec.values[platform].deployment}
+                        {body: "image: " + yamlFileParsed.spec.values.deployment.image}
+                    {body: "image: " + yamlFileParsed.spec.values[platform].deployment.image}
 
             deployYamlFile = (ref, newYamlFileEncoded, sender, serviceRepo, serviceBranch, config, changeAnnotations) ->
                 {
