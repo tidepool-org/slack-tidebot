@@ -137,8 +137,9 @@ module.exports = (robot) ->
                 theList = repoToServices serviceRepo
                 for platform in theList
                     console.log "SERVICE REPO: #{platform}"
-                    repoDestination = "fluxcd.io/tag." + platform
-                    {body: platform + ": " + yamlFileParsed.metadata.annotations[repoDestination]}
+                    if config.Service
+                        {body: yamlFileParsed.spec.values.deployment}
+                    {body: yamlFileParsed.spec.values[platform].deployment}
 
             deployYamlFile = (ref, newYamlFileEncoded, sender, serviceRepo, serviceBranch, config, changeAnnotations) ->
                 {
