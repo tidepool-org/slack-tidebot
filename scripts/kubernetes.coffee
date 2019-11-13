@@ -100,12 +100,6 @@ module.exports = (robot) ->
                 
             serviceBranch = branch.head.ref
             config = prCommentEnvExtractor()
-            # console.log config
-            console.log "PROCESS.ENV inputToEnvMap: " + JSON.stringify(process.env.inputToEnvironmentMap)
-            console.log "PROCESS.ENV: " + JSON.stringify(process.env.inputToEnvironmentMap["map"])
-            # console.log "PROCESS.ENV: " + JSON.stringify(process.env.inputToEnvironmentMap.map.prd)
-            console.log "PROCESS.ENV: " + JSON.stringify(process.env.inputToEnvironmentMap[5])
-            console.log "PROCESS.ENV service: " + JSON.stringify(process.env.inputToRepoMap["map"].prd)
             packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
