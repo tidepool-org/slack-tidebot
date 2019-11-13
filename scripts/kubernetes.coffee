@@ -159,15 +159,15 @@ module.exports = (robot) ->
 
             tidebotPostPrFunction = (ref) ->
                 currentDeployedBranch = yamlFileDecodeForQuery ref
-                    if currentDeployedBranch == undefined
-                        error = { body: "ERROR: Can not find deployed #{serviceRepo} or #{serviceRepo} has not been deployed to #{config.Env}" }
-                        github.post tidebotPostPrComment, error, (req) ->
-                            console.log req.body
-                    else
-                        console.log currentDeployedBranch[0]
-                        console.log "COMMENT POST ENDPOINT #{tidebotPostPrComment}"
-                        github.post tidebotPostPrComment, currentDeployedBranch[0], (req) ->
-                            console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR QUERIED BRANCH DEPLOYED: #{req.body}"
+                if currentDeployedBranch == undefined
+                    error = { body: "ERROR: Can not find deployed #{serviceRepo} or #{serviceRepo} has not been deployed to #{config.Env}" }
+                    github.post tidebotPostPrComment, error, (req) ->
+                        console.log req.body
+                else
+                    console.log currentDeployedBranch[0]
+                    console.log "COMMENT POST ENDPOINT #{tidebotPostPrComment}"
+                    github.post tidebotPostPrComment, currentDeployedBranch[0], (req) ->
+                        console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR QUERIED BRANCH DEPLOYED: #{req.body}"
 
             deployServiceAndStatusComment = (ref, changeAnnotations, serviceType, yamlFileType, deployType) ->
                 console.log "Deploy #{serviceType} service yaml retrieved for updating"
