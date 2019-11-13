@@ -191,15 +191,15 @@ module.exports = (robot) ->
                 tidebotCommentBodyString = JSON.stringify(tidebotCommentBody)
                 console.log "FULL ORIGINAL TIDEBOT COMMENT BODY: #{tidebotCommentBodyString}"
                 github.get environmentValuesYamlFile, (ref) ->
-                    deployServiceAndStatusComment ref, false, "values", environmentValuesYamlFile, deployValues
+                    deployServiceAndStatusComment ref, false, tidebotCommentBody, "values", environmentValuesYamlFile, deployValues
                 
                 if config.Service
                     github.get packageK8GithubYamlFile, (ref) -> 
-                        deployServiceAndStatusComment ref, true, "package", packageK8GithubYamlFile, deployPackage
+                        deployServiceAndStatusComment ref, true, tidebotCommentBody, "package", packageK8GithubYamlFile, deployPackage
                 
                 else
                     github.get tidepoolGithubYamlFile, (ref) -> 
-                        deployServiceAndStatusComment ref, true, "tidepool", tidepoolGithubYamlFile, deployTidepool
+                        deployServiceAndStatusComment ref, true, tidebotCommentBody, "tidepool", tidepoolGithubYamlFile, deployTidepool
                 
                 github.post tidebotPostPrComment, tidebotCommentBody.success, (req) ->
                     console.log tidebotCommentBody.success
