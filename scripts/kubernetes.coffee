@@ -105,7 +105,7 @@ module.exports = (robot) ->
             console.log "PROCESS.ENV: " + JSON.stringify(process.env.inputToEnvironmentMap["map"])
             console.log "PROCESS.ENV: " + JSON.stringify(process.env.inputToEnvironmentMap.map.prd)
             console.log "PROCESS.ENV: " + JSON.stringify(process.env.inputToEnvironmentMap[map])
-            console.log "PROCESS.ENV service: " + JSON.stringify(process.env.inputToRepoMap[].prd)
+            console.log "PROCESS.ENV service: " + JSON.stringify(process.env.inputToRepoMap[])
             packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
