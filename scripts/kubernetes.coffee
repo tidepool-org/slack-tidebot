@@ -23,6 +23,36 @@ eventActions = require('./all')
 eventTypesRaw = process.env['HUBOT_GITHUB_EVENT_NOTIFIER_TYPES']
 Base64 = require('js-base64').Base64;
 eventTypes = []
+inputToRepoMap = {
+    "shared": "cluster-shared",
+    "qa1": "cluster-qa1",
+    "dev": "cluster-qa1",
+    "qa2": "cluster-qa2",
+    "int": "cluster-integration",
+    "integration": "cluster-integration",
+    "prd": "cluster-production",
+    "prod": "cluster-production",
+    "production": "cluster-production",
+    "test": "integration-test",
+    "stg": "cluster-staging",
+    "staging": "cluster-staging"
+}
+inputToEnvironmentMap = {
+    "qa1": "qa1",
+    "dev": "qa1",
+    "qa2": "qa2",
+    "int": "external",
+    "integration": "external",
+    "prd": "production",
+    "prod": "production",
+    "production": "production",
+    "test": "integration-test",
+    "stg": "staging",
+    "staging": "staging"
+}
+serviceRepoToService = {
+    "slack-tidebot": "tidebot"
+}
 
 announceRepoEvent = (adapter, datas, eventType, cb) ->
   if eventActions[eventType]?
@@ -63,14 +93,16 @@ module.exports = (robot) ->
                 if match == null
                     console.log "This command to deploy to #{match[1]} is not valid or the environment #{match[1]} does not exist."
                 {
-                    Env: process.env.inputToEnvironmentMap[match[2]],
-                    Repo: process.env.inputToRepoMap[match[2]],
-                    Service: process.env.serviceRepoToService[serviceRepo]
+                    Env: inputToEnvironmentMap[match[2]],
+                    Repo: inputToRepoMap[match[2]],
+                    Service: serviceRepoToService[serviceRepo]
                 }
                 
             serviceBranch = branch.head.ref
             config = prCommentEnvExtractor()
-            console.log config
+            # console.log config
+            console.log "PROCESS.ENV: " + JSON.stringify(process.env)
+            console.log "PROCESS.ENV service: " + JSON.stringify(process.env.serviceRepoToService)
             packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
