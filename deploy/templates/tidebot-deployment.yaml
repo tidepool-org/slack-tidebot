@@ -64,6 +64,24 @@ spec:
               name: tidebot
               key: HUBOT_SLACK_ROOMS
               optional: false
+        - name: inputToRepoMap
+          valueFrom:
+            configMapKeyRef:
+              name: tidebot
+              key: inputToRepoMap
+              optional: false
+        - name: inputToEnvironmentMap
+          valueFrom:
+            configMapKeyRef:
+              name: tidebot
+              key: inputToEnvironmentMap
+              optional: false
+        - name: serviceRepoToService
+          valueFrom:
+            configMapKeyRef:
+              name: tidebot
+              key: serviceRepoToService
+              optional: false
         image: "{{ .Values.deployment.image }}"
         livenessProbe:
           httpGet:

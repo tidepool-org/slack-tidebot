@@ -6,6 +6,9 @@ data:
   HUBOT_GITHUB_EVENT_NOTIFIER_TYPES: {{ .HUBOT_GITHUB_EVENT_NOTIFIER_TYPES | default "" }}
   HUBOT_SLACK_ACCOUNT: {{ .HUBOT_SLACK_ACCOUNT | default "" }}
   HUBOT_SLACK_ROOMS: {{ .HUBOT_SLACK_ROOMS | default "" }}
+  inputToRepoMap: {{ .inputToRepoMap | default "" }}
+  inputToEnvironmentMap: {{ .inputToEnvironmentMap | default "" }}
+  serviceRepoToService: {{ .serviceRepoToService | default "" }}
 {{- end }}
 kind: ConfigMap
 metadata:

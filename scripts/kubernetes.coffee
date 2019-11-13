@@ -23,36 +23,6 @@ eventActions = require('./all')
 eventTypesRaw = process.env['HUBOT_GITHUB_EVENT_NOTIFIER_TYPES']
 Base64 = require('js-base64').Base64;
 eventTypes = []
-inputToRepoMap = {
-    "shared": "cluster-shared",
-    "qa1": "cluster-qa1",
-    "dev": "cluster-qa1",
-    "qa2": "cluster-qa2",
-    "int": "cluster-integration",
-    "integration": "cluster-integration",
-    "prd": "cluster-production",
-    "prod": "cluster-production",
-    "production": "cluster-production",
-    "test": "integration-test",
-    "stg": "cluster-staging",
-    "staging": "cluster-staging"
-}
-inputToEnvironmentMap = {
-    "qa1": "qa1",
-    "dev": "qa1",
-    "qa2": "qa2",
-    "int": "external",
-    "integration": "external",
-    "prd": "production",
-    "prod": "production",
-    "production": "production",
-    "test": "integration-test",
-    "stg": "staging",
-    "staging": "staging"
-}
-serviceRepoToService = {
-    "slack-tidebot": "tidebot"
-}
 
 announceRepoEvent = (adapter, datas, eventType, cb) ->
   if eventActions[eventType]?
@@ -93,9 +63,9 @@ module.exports = (robot) ->
                 if match == null
                     console.log "This command to deploy to #{match[1]} is not valid or the environment #{match[1]} does not exist."
                 {
-                    Env: inputToEnvironmentMap[match[2]],
-                    Repo: inputToRepoMap[match[2]],
-                    Service: serviceRepoToService[serviceRepo]
+                    Env: process.env.inputToEnvironmentMap[match[2]],
+                    Repo: process.env.inputToRepoMap[match[2]],
+                    Service: process.env.serviceRepoToService[serviceRepo]
                 }
                 
             serviceBranch = branch.head.ref
