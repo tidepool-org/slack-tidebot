@@ -139,8 +139,11 @@ module.exports = (robot) ->
                     console.log "SERVICE REPO: #{platform}"
                     if config.Service
                         {body: "image: " + yamlFileParsed.spec.values.deployment.image}
+                    else if yamlFileParsed.spec.values[platform] == undefined
+                        { body: "ERROR: Can not find deployed #{serviceRepo} or #{serviceRepo} has not been deployed to #{config.Env}" }
                     else
                         {body: "image: " + yamlFileParsed.spec.values[platform].deployment.image}
+                    
 
             deployYamlFile = (ref, newYamlFileEncoded, sender, serviceRepo, serviceBranch, config, changeAnnotations) ->
                 {
@@ -159,23 +162,21 @@ module.exports = (robot) ->
 
             tidebotPostPrFunction = (ref) ->
                 currentDeployedBranch = yamlFileDecodeForQuery ref
-                if currentDeployedBranch == undefined
-                    error = { body: "ERROR: Can not find deployed #{serviceRepo} or #{serviceRepo} has not been deployed to #{config.Env}" }
-                    github.post tidebotPostPrComment, error, (req) ->
-                        console.log req.body
-                else
-                    console.log currentDeployedBranch[0]
-                    console.log "COMMENT POST ENDPOINT #{tidebotPostPrComment}"
-                    github.post tidebotPostPrComment, currentDeployedBranch[0], (req) ->
-                        console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR QUERIED BRANCH DEPLOYED: #{req.body}"
+                console.log currentDeployedBranch[0]
+                console.log "COMMENT POST ENDPOINT #{tidebotPostPrComment}"
+                github.post tidebotPostPrComment, currentDeployedBranch[0], (req) ->
+                    console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR QUERIED BRANCH DEPLOYED: #{req.body}"
 
-            deployServiceAndStatusComment = (ref, changeAnnotations, serviceType, yamlFileType, deployType) ->
+            deployServiceAndStatusComment = (ref, changeAnnotations, serviceType, yamlFileType) ->
+                tidebotCommentBody = tidebotCommentBodyInitializer sender, serviceRepo, serviceBranch, config
+                tidebotCommentBodyString = JSON.stringify(tidebotCommentBody)
+                console.log "FULL ORIGINAL TIDEBOT COMMENT BODY: #{tidebotCommentBodyString}"
                 console.log "Deploy #{serviceType} service yaml retrieved for updating"
                 yamlFileEncodeForKubeConfig = yamlFileEncode ref, changeAnnotations
-                deployTidepool = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config, changeAnnotations
-                github.put yamlFileType, deployType, (req) ->
-                    console.log "THIS WILL SHOW IF #{serviceType} SERVICE HELMRELEASE FILE SUCCESSFULLY UPDATES: #{deployType.message}"
-                    robot.messageRoom room, "#{deployType.message}"
+                deployService = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config, changeAnnotations
+                github.put yamlFileType, deployService, (req) ->
+                    console.log "THIS WILL SHOW IF #{serviceType} SERVICE HELMRELEASE FILE SUCCESSFULLY UPDATES: #{deployService.message}"
+                    robot.messageRoom room, "#{deployService.message}"
                     console.log "COMMENT BODY AFTER SUCCESFULL #{serviceType} SERVICE HELRELEASE FILE UPDATE: #{tidebotCommentBody[serviceType].body}"
                     console.log "COMMENT PATH: #{tidebotPostPrComment}"
                 github.post tidebotPostPrComment, tidebotCommentBody[serviceType], (req) ->
@@ -187,19 +188,16 @@ module.exports = (robot) ->
                     console.log "TIDEBOT COMMENT POST ERROR MESSAGE: #{req.body}"
             
             if match[1] == "deploy"
-                tidebotCommentBody = tidebotCommentBodyInitializer sender, serviceRepo, serviceBranch, config
-                tidebotCommentBodyString = JSON.stringify(tidebotCommentBody)
-                console.log "FULL ORIGINAL TIDEBOT COMMENT BODY: #{tidebotCommentBodyString}"
                 github.get environmentValuesYamlFile, (ref) ->
-                    deployServiceAndStatusComment ref, false, tidebotCommentBody, "values", environmentValuesYamlFile, deployValues
+                    deployServiceAndStatusComment ref, false, tidebotCommentBody, "values", environmentValuesYamlFile
                 
                 if config.Service
                     github.get packageK8GithubYamlFile, (ref) -> 
-                        deployServiceAndStatusComment ref, true, tidebotCommentBody, "package", packageK8GithubYamlFile, deployPackage
+                        deployServiceAndStatusComment ref, true, tidebotCommentBody, "package", packageK8GithubYamlFile
                 
                 else
                     github.get tidepoolGithubYamlFile, (ref) -> 
-                        deployServiceAndStatusComment ref, true, tidebotCommentBody, "tidepool", tidepoolGithubYamlFile, deployTidepool
+                        deployServiceAndStatusComment ref, true, tidebotCommentBody, "tidepool", tidepoolGithubYamlFile
                 
                 github.post tidebotPostPrComment, tidebotCommentBody.success, (req) ->
                     console.log tidebotCommentBody.success
