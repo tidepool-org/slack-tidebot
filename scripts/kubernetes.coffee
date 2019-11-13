@@ -102,7 +102,7 @@ module.exports = (robot) ->
             config = prCommentEnvExtractor()
             # console.log config
             console.log "PROCESS.ENV inputToEnvMap: " + JSON.stringify(process.env.inputToEnvironmentMap)
-            console.log "PROCESS.ENV: " + JSON.stringify(process.env.inputToEnvironmentMap.["prd"])
+            console.log "PROCESS.ENV: " + JSON.stringify(process.env.inputToEnvironmentMap["prd"])
             console.log "PROCESS.ENV: " + JSON.stringify(process.env.inputToEnvironmentMap.prd)
             console.log "PROCESS.ENV: " + JSON.stringify(process.env.inputToEnvironmentMap[0])
             console.log "PROCESS.ENV service: " + JSON.stringify(process.env.inputToRepoMap[1])
