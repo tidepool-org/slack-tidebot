@@ -19,8 +19,8 @@ spec:
 {{- end -}}
 {{- end }}
     routes:
-    - matcher:
-        methods:
+    - matchers:
+      - methods:
         - POST
         - GET
         prefix: /
