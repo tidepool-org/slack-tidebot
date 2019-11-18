@@ -8,33 +8,9 @@ configmap:
     HUBOT_GITHUB_EVENT_NOTIFIER_TYPES: "commit_comment,create,delete,deployment,deployment_status,issue_comment,issues,page_build,pull_request_review_comment,pull_request,push,repository,release,status,ping,pull_request_review"
     HUBOT_SLACK_ACCOUNT: "Tidepool"
     HUBOT_SLACK_ROOMS: "tidebot,github-events"
-    inputToRepoMap:
-      shared: "cluster-shared"
-      qa1: "cluster-qa1"
-      dev: "cluster-qa1"
-      qa2: "cluster-qa2"
-      int: "cluster-integration"
-      integration: "cluster-integration"
-      prd: "cluster-production"
-      prod: "cluster-production"
-      production: "cluster-production"
-      test: "integration-test"
-      stg: "cluster-staging"
-      staging: "cluster-staging"
-    inputToEnvironmentMap:
-      qa1: "qa1"
-      dev: "qa1"
-      qa2: "qa2"
-      int: "external"
-      integration: "external"
-      prd: "production"
-      prod: "production"
-      production: "production"
-      test: "integration-test"
-      stg: "staging"
-      staging: "staging"
-    serviceRepoToService:
-      slack-tidebot: "tidebot"
+    inputToRepoMap: "{\"shared\":\"cluster-shared\",\"qa1\":\"cluster-qa1\",\"dev\":\"cluster-qa1\",\"qa2\":\"cluster-qa2\",\"int\":\"cluster-integration\",\"integration\":\"cluster-integration\",\"prd\":\"cluster-production\",\"prod\":\"cluster-production\",\"production\":\"cluster-production\",\"test\":\"integration-test\",\"stg\":\"cluster-staging\",\"staging\":\"cluster-staging\"}"
+    inputToEnvironmentMap: "{\"qa1\":\"qa1\",\"dev\":\"qa1\",\"qa2\":\"qa2\",\"int\":\"external\",\"integration\":\"external\",\"prd\":\"production\",\"prod\":\"production\",\"production\":\"production\",\"test\":\"integration-test\",\"stg\":\"staging\",\"staging\":\"staging\"}"
+    serviceRepoToService: "{\"slack-tidebot\":\"tidebot\"}"
 deployment:
   podAnnotations: {}
   image: tidepool/slack-tidebot:master-d521cd02089b8590bcce47e985e37d59c3d71d89

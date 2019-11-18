@@ -23,7 +23,10 @@ eventActions = require('./all')
 eventTypesRaw = process.env['HUBOT_GITHUB_EVENT_NOTIFIER_TYPES']
 Base64 = require('js-base64').Base64;
 eventTypes = []
-inputToRepoMap = {
+inputToRepoMap = JSON.parse(process.env.inputToRepoMap)
+inputToEnvironmentMap = JSON.parse(process.env.inputToEnvironmentMap)
+serviceRepoToService = JSON.parse(process.env.serviceRepoToService)
+inputToRepoMapLocal = {
     "shared": "cluster-shared",
     "qa1": "cluster-qa1",
     "dev": "cluster-qa1",
@@ -37,7 +40,7 @@ inputToRepoMap = {
     "stg": "cluster-staging",
     "staging": "cluster-staging"
 }
-inputToEnvironmentMap = {
+inputToEnvironmentMapLocal = {
     "qa1": "qa1",
     "dev": "qa1",
     "qa2": "qa2",
@@ -50,7 +53,7 @@ inputToEnvironmentMap = {
     "stg": "staging",
     "staging": "staging"
 }
-serviceRepoToService = {
+serviceRepoToServiceLocal = {
     "slack-tidebot": "tidebot"
 }
 
@@ -92,18 +95,27 @@ module.exports = (robot) ->
             prCommentEnvExtractor = () ->
                 if match == null
                     console.log "This command to deploy to #{match[1]} is not valid or the environment #{match[1]} does not exist."
-                {
-                    Env: inputToEnvironmentMap[match[2]],
-                    Repo: inputToRepoMap[match[2]],
-                    Service: serviceRepoToService[serviceRepo]
-                }
+                else if inputToRepoMap == undefined
+                    console.log "Used Hard Coded ENV Variables For Config"
+                    {
+                        Env: inputToEnvironmentMapLocal[match[2]],
+                        Repo: inputToRepoMapLocal[match[2]],
+                        Service: serviceRepoToServiceLocal[serviceRepo]
+                    }
+                else
+                    console.log "Used Environment Variables From Config"
+                    {
+                        Env: inputToEnvironmentMap[match[2]],
+                        Repo: inputToRepoMap[match[2]],
+                        Service: serviceRepoToService[serviceRepo]
+                    }
                 
             serviceBranch = branch.head.ref
             config = prCommentEnvExtractor()
-            # console.log config
-            console.log "PROCESS.ENV inputToEnvMap: " + JSON.stringify(process.env.inputToEnvironmentMap)
-            console.log "PROCESS.ENV: " + JSON.stringify(process.env.inputToEnvironmentMap["int"])
-            console.log "PROCESS.ENV: " + JSON.stringify(process.env.inputToEnvironmentMap.prd)
+            console.log config
+            console.log "PROCESS.ENV inputToEnvMap: " + inputToEnvironmentMap
+            console.log "PROCESS.ENV: " + inputToEnvironmentMap["int"]
+            console.log "PROCESS.ENV: " + inputToEnvironmentMap.prd
             packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
