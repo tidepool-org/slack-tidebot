@@ -37,7 +37,7 @@ configmap:
       slack-tidebot: "tidebot"
 deployment:
   podAnnotations: {}
-  image: tidepool/slack-tidebot:master-d521cd02089b8590bcce47e985e37d59c3d71d89
+  image: tidepool/slack-tidebot:master-5783cd86c2ed10f6f107047c6d60944e4cdadc6b
 resources: {}
 securityContext: {}
 hpa:
