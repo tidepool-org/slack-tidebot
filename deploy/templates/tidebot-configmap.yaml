@@ -16,5 +16,4 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     app: tidebot
-type: Opaque
 {{- end -}}
