@@ -23,6 +23,11 @@ eventActions = require('./all')
 eventTypesRaw = process.env['HUBOT_GITHUB_EVENT_NOTIFIER_TYPES']
 Base64 = require('js-base64').Base64;
 eventTypes = []
+inputToRepoMap = JSON.parse(process.env.inputToRepoMap)
+console.log process.env
+console.log inputToRepoMap + " checking output of input to repo map"
+inputToEnvironmentMap = JSON.parse(process.env.inputToEnvironmentMap)
+serviceRepoToService = JSON.parse(process.env.serviceRepoToService)
 inputToRepoMapLocal = {
     "shared": "cluster-shared",
     "qa1": "cluster-qa1",
@@ -101,10 +106,6 @@ module.exports = (robot) ->
                     }
                 else
                     console.log "Used Environment Variables From Config"
-                    inputToRepoMap = JSON.parse(process.env.inputToRepoMap)
-                    console.log inputToRepoMap + " checking output of input to repo map"
-                    inputToEnvironmentMap = JSON.parse(process.env.inputToEnvironmentMap)
-                    serviceRepoToService = JSON.parse(process.env.serviceRepoToService)
                     {
                         Env: inputToEnvironmentMap[match[2]],
                         Repo: inputToRepoMap[match[2]],
