@@ -92,7 +92,7 @@ module.exports = (robot) ->
             prCommentEnvExtractor = () ->
                 if match == null
                     console.log "This command to deploy to #{match[1]} is not valid or the environment #{match[1]} does not exist."
-                else if inputToRepoMap == undefined
+                else if process.env.inputToRepoMap == undefined
                     console.log "Used Hard Coded ENV Variables For Config"
                     {
                         Env: inputToEnvironmentMapLocal[match[2]],
