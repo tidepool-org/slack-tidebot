@@ -5,7 +5,7 @@
 apiVersion: gateway.solo.io/v1
 kind: VirtualService
 metadata:
-  name: 'tidebot-https'
+  name: 'https'
   namespace: '{{ .Release.Namespace }}'
 spec:
   displayName: 'tidebot-https'
