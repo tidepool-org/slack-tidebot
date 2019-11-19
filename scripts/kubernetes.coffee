@@ -24,6 +24,7 @@ eventTypesRaw = process.env['HUBOT_GITHUB_EVENT_NOTIFIER_TYPES']
 Base64 = require('js-base64').Base64;
 eventTypes = []
 inputToRepoMap = JSON.parse(process.env.inputToRepoMap)
+console.log inputToRepoMap + " checking output of input to repo map"
 inputToEnvironmentMap = JSON.parse(process.env.inputToEnvironmentMap)
 serviceRepoToService = JSON.parse(process.env.serviceRepoToService)
 inputToRepoMapLocal = {
