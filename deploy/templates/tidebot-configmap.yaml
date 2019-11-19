@@ -1,7 +1,7 @@
-{{ if and .Values.configmap.enabled .Values.configmap.data_ }}
+{{ if and .Values.configmap.enabled .Values.configmap.data }}
 ---
 apiVersion: v1
-{{ with .Values.configmap.data_ }}
+{{ with .Values.configmap.data }}
 data:
   HUBOT_GITHUB_EVENT_NOTIFIER_TYPES: {{ .HUBOT_GITHUB_EVENT_NOTIFIER_TYPES | default "" }}
   HUBOT_SLACK_ACCOUNT: {{ .HUBOT_SLACK_ACCOUNT | default "" }}
