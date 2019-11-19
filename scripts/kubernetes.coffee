@@ -25,8 +25,10 @@ Base64 = require('js-base64').Base64;
 eventTypes = []
 inputToRepoMap = JSON.parse(process.env.inputToRepoMap)
 console.log process.env
-console.log inputToRepoMap + " checking output of input to repo map"
+console.log inputToRepoMap.test + " checking output of input to repo map"
 inputToEnvironmentMap = JSON.parse(process.env.inputToEnvironmentMap)
+console.log "PROCESS.ENV: " + inputToEnvironmentMap["int"]
+console.log "PROCESS.ENV: " + inputToEnvironmentMap.prd
 serviceRepoToService = JSON.parse(process.env.serviceRepoToService)
 inputToRepoMapLocal = {
     "shared": "cluster-shared",
@@ -115,9 +117,9 @@ module.exports = (robot) ->
             serviceBranch = branch.head.ref
             config = prCommentEnvExtractor()
             console.log config
-            console.log "PROCESS.ENV inputToEnvMap: " + process.env.inputToEnvironmentMap
-            console.log "PROCESS.ENV: " + process.env.inputToEnvironmentMap["int"]
-            console.log "PROCESS.ENV: " + process.env.inputToEnvironmentMap.prd
+            console.log "PROCESS.ENV inputToEnvMap: " + inputToEnvironmentMap
+            console.log "PROCESS.ENV: " + inputToEnvironmentMap["int"]
+            console.log "PROCESS.ENV: " + inputToEnvironmentMap.prd
             packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
