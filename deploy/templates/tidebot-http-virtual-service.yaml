@@ -5,10 +5,10 @@
 apiVersion: gateway.solo.io/v1
 kind: VirtualService
 metadata:
-  name: 'tidebot-http'
+  name: http
   namespace: '{{ .Release.Namespace }}'
 spec:
-  displayName: 'tidebot-http'
+  displayName: http
   virtualHost:
     domains:
 {{- range $dnsName := $spec.dnsNames -}}
