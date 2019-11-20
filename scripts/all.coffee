@@ -118,13 +118,12 @@ module.exports =
     callback msg
 
   issue_comment: (adapter, data, callback) ->
+    issue_pull = "Issue"
     issue = data.issue
     comment = data.comment
     repo = data.repository
     repo_link = formatUrl adapter, repo.html_url, repo.name
     comment_link = formatUrl adapter, comment.html_url, "#{issue_pull} ##{issue.number}"
-
-    issue_pull = "Issue"
 
     if comment.html_url.indexOf("/pull/") > -1
       issue_pull = "Pull Request"
