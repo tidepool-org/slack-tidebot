@@ -10,6 +10,7 @@
     "express": "^4.17.1",
     "githubot": "^1.0.1",
     "hubot": "^3.3.2",
+    "hubot-calculator": "^0.4.0",
     "hubot-diagnostics": "^1.0.0",
     "hubot-env": "0.0.2",
     "hubot-github-repo-event-notifier": "^1.8.1",
