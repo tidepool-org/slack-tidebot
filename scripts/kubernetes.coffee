@@ -94,7 +94,7 @@ module.exports = (robot) ->
         console.log "Get Service Repo Information"
         github.get branches, (branch) ->
             console.log "Get Service Branch Information"
-            match = comments.match(/^.*?\/\b(deploy|query)\s+([-_\.a-zA-z0-9]+)\s*?/)
+            match = comments.match(/^.*?\/\b(deploy|query|default)\s+([-_\.a-zA-z0-9]+)\s*?/)
             # function that takes users pr comment and extracts the Repo and Environment
             prCommentEnvExtractor = () ->
                 if match == null
@@ -136,6 +136,8 @@ module.exports = (robot) ->
                 yamlFileDecoded = Base64.decode(ref.content)
                 yamlFileParsed = YAML.parse(yamlFileDecoded)
                 dockerImageFilter = "glob:" + serviceBranch + "-*"
+                if match[1] = "default"
+                    dockerImageFilter =  "glob:master-*"
                 theList = repoToServices serviceRepo
                 for platform in theList
                     repoDestination = "fluxcd.io/tag." + platform
@@ -204,7 +206,7 @@ module.exports = (robot) ->
                 github.post tidebotPostPrComment, errorMessage, (req) ->
                     console.log "TIDEBOT COMMENT POST ERROR MESSAGE: #{req.body}"
             
-            if match[1] == "deploy"
+            if match[1] == "deploy" || match[1] == "default"
                 tidebotCommentBody = tidebotCommentBodyInitializer sender, serviceRepo, serviceBranch, config
                 github.get environmentValuesYamlFile, (ref) ->
                     deployServiceAndStatusComment ref, false, tidebotCommentBody, "values", environmentValuesYamlFile
