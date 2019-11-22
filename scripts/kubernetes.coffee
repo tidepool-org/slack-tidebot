@@ -194,7 +194,7 @@ module.exports = (robot) ->
                     robot.messageRoom room, "#{deployService.message}"
                 github.post tidebotPostPrComment, tidebotCommentBody[serviceType], (req) ->
                     console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR #{serviceType} SERVICE HELMRELEASE FILE IS SUCCESSFUL: #{req.body}"
-                if serviceType == tidepool
+                if serviceType == "tidepool" || serviceType == "package"
                     github.post tidebotPostPrComment, tidebotCommentBody.success, (req) ->
                         console.log "#{req.body}: This is the tidebot comment post body for success"
 
