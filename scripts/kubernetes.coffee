@@ -98,7 +98,7 @@ module.exports = (robot) ->
             # function that takes users pr comment and extracts the Repo and Environment
             prCommentEnvExtractor = () ->
                 if match == null
-                    console.log "ERROR with " match
+                    console.log "ERROR with #{match}"
                 else if process.env.inputToRepoMap == undefined
                     console.log "ENV variables failed: Used Hard Coded ENV Variables For Config"
                     {
