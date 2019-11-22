@@ -116,8 +116,8 @@ module.exports = (robot) ->
                     }
                 
             serviceBranch = branch.head.ref
-            console.log config
             config = prCommentEnvExtractor(match)
+            console.log config
             packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
