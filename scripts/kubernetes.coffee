@@ -95,6 +95,7 @@ module.exports = (robot) ->
         github.get branches, (branch) ->
             console.log "Grabbed Service Branch"
             match = comments.match(/^.*?\/\b(deploy|query|default)\s+([-_\.a-zA-z0-9]+)\s*?/)
+            console.log "#{match[1]} #{match[2]}"
             if match = null
                 console.log "/ Comment no longer active"
                 return
@@ -115,6 +116,7 @@ module.exports = (robot) ->
                     }
                 
             serviceBranch = branch.head.ref
+            console.log config
             config = prCommentEnvExtractor(match)
             packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
