@@ -96,7 +96,7 @@ module.exports = (robot) ->
         console.log "#{match[1]} #{match[2]}"
         github.get branches, (branch) ->
             console.log "Grabbed Service Branch"
-            if match[1] = null
+            if match[1] == null
                 console.log "/ Comment no longer active"
                 return
             # function that takes users pr comment and extracts the Repo and Environment
@@ -133,7 +133,7 @@ module.exports = (robot) ->
                 yamlFileDecoded = Base64.decode(ref.content)
                 yamlFileParsed = YAML.parse(yamlFileDecoded)
                 dockerImageFilter = "glob:" + serviceBranch + "-*"
-                if match[1] = "default"
+                if match[1] == "default"
                     dockerImageFilter =  "glob:master-*"
                 theList = repoToServices()
                 for platform in theList
