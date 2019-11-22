@@ -211,10 +211,11 @@ module.exports = (robot) ->
                 else
                     github.get tidepoolGithubYamlFile, (ref) -> 
                         deployServiceAndStatusComment ref, true, tidebotCommentBody, "tidepool", tidepoolGithubYamlFile
-                
+
                 github.post tidebotPostPrComment, tidebotCommentBody.success, (req) ->
                     console.log tidebotCommentBody.success
                     console.log "#{req.body}: This is the tidebot comment post body for success"
+                return
             
             else if match[1] == "query"
                 if config.Service
@@ -223,7 +224,7 @@ module.exports = (robot) ->
                 else
                     github.get tidepoolGithubYamlFile, (ref) -> 
                         tidebotPostPrFunction ref
-            return
+                return
         announceRepoEvent adapter, datas, eventType, (what) ->
             robot.messageRoom room, what
             res.send "OK"
