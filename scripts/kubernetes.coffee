@@ -162,6 +162,8 @@ module.exports = (robot) ->
                     
 
             deployYamlFile = (ref, newYamlFileEncoded, changeAnnotations) ->
+                if config.Service
+                    config.env = "cluster-#{match[2]}"
                 {
                     message: if changeAnnotations then "#{sender} updated helmrelease.yaml file in #{config.Env}" else "#{sender} updated values.yaml file in #{config.Env}",
                     content: newYamlFileEncoded,
@@ -169,6 +171,8 @@ module.exports = (robot) ->
                 }
             
             tidebotCommentBodyInitializer = () ->
+                if config.Service
+                    config.env = "cluster-#{match[2]}"
                 {
                     package: if config.Service then { body: "#{sender} updated #{config.Service}-helmrelease.yaml file in #{config.Env}" } else {body: "OK"},                   
                     success: { body: "#{sender} deployed #{serviceRepo} #{serviceBranch} branch to #{config.Env} environment" },
