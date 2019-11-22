@@ -227,5 +227,6 @@ module.exports = (robot) ->
                 return
         announceRepoEvent adapter, datas, eventType, (what) ->
             robot.messageRoom room, what
-            res.send "OK"
-    return
+            timeOut = () ->
+                res.send "OK"
+            setTimeout(timeOut, 8000)
