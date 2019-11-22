@@ -195,7 +195,6 @@ module.exports = (robot) ->
                 errorMessage = { body: "Error: #{response.statusCode} #{response.error}!" }
                 github.post tidebotPostPrComment, errorMessage, (req) ->
                     console.log "TIDEBOT COMMENT POST ERROR MESSAGE: #{req.body}"
-            console.log "Is #{match[1]} making it down here"
             if match[1] == "deploy" || match[1] == "default"
                 tidebotCommentBody = tidebotCommentBodyInitializer()
                 github.get environmentValuesYamlFile, (ref) ->
