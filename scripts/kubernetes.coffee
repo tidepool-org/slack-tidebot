@@ -116,10 +116,6 @@ module.exports = (robot) ->
                 
             serviceBranch = branch.head.ref
             config = prCommentEnvExtractor()
-            console.log config
-            console.log "PROCESS.ENV inputToEnvMap: " + inputToEnvironmentMap
-            console.log "PROCESS.ENV: " + inputToEnvironmentMap["int"]
-            console.log "PROCESS.ENV: " + inputToEnvironmentMap.prd
             packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
@@ -136,7 +132,7 @@ module.exports = (robot) ->
                 yamlFileDecoded = Base64.decode(ref.content)
                 yamlFileParsed = YAML.parse(yamlFileDecoded)
                 dockerImageFilter = "glob:" + serviceBranch + "-*"
-                if match[1] = "default"
+                if match[1] == "default"
                     dockerImageFilter =  "glob:master-*"
                 theList = repoToServices serviceRepo
                 for platform in theList
