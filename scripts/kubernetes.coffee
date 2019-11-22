@@ -83,7 +83,9 @@ module.exports = (robot) ->
             return
         comments = datas.comment.body
         match = comments.match(/^.*?\/\b(deploy|query|default)\s+([-_\.a-zA-z0-9]+)\s*?/)
-        console.log match
+        if match = null
+            console.log "/ Comment no longer active"
+            return
         getComment = datas.comment.url
         issueNumber = datas.issue.number
         commentNumber = datas.issue.comments
@@ -97,9 +99,7 @@ module.exports = (robot) ->
         github.get branches, (branch) ->
             # function that takes users pr comment and extracts the Repo and Environment
             prCommentEnvExtractor = () ->
-                if match == null
-                    console.log "ERROR with #{match}"
-                else if process.env.inputToRepoMap == undefined
+                if process.env.inputToRepoMap == undefined
                     console.log "ENV variables failed: Used Hard Coded ENV Variables For Config"
                     {
                         Env: inputToEnvironmentMapLocal[match[2]],
@@ -221,7 +221,7 @@ module.exports = (robot) ->
                     github.get tidepoolGithubYamlFile, (ref) -> 
                         tidebotPostPrFunction ref
 
-        announceRepoEvent adapter, datas, eventType, (what) ->
-            robot.messageRoom room, what
-            res.send "OK"
+    announceRepoEvent adapter, datas, eventType, (what) ->
+        robot.messageRoom room, what
+        res.send "OK"
 
