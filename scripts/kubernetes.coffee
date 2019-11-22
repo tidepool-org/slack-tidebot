@@ -93,11 +93,10 @@ module.exports = (robot) ->
         console.log "At #{commentTimeCreated}, #{commenterAutho} #{sender} posted comment ##{commentNumber} '#{comments}' to PR in #{serviceRepo} issue ##{issueNumber}"
         console.log "Comment URL #{getComment}"
         match = comments.match(/^.*?\/\b(deploy|query|default)\s+([-_\.a-zA-z0-9]+)\s*?/)
-        console.log "#{match[1]} #{match[2]}"
         github.get branches, (branch) ->
-            console.log "Grabbed Service Branch"
-            if match[1] == null
-                console.log "/ Comment no longer active"
+            console.log "User comment and Service Branch info retrieved ready to execute command"
+            if match == null
+                console.log "/ command complete and no longer active"
                 return
             # function that takes users pr comment and extracts the Repo and Environment
             prCommentEnvExtractor = () ->
@@ -117,7 +116,6 @@ module.exports = (robot) ->
                 
             serviceBranch = branch.head.ref
             config = prCommentEnvExtractor()
-            console.log config
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
             tidebotPostPrComment = "repos/tidepool-org/#{serviceRepo}/issues/#{issueNumber}/comments"
@@ -213,7 +211,6 @@ module.exports = (robot) ->
                         deployServiceAndStatusComment ref, true, tidebotCommentBody, "tidepool", tidepoolGithubYamlFile
 
                 github.post tidebotPostPrComment, tidebotCommentBody.success, (req) ->
-                    console.log tidebotCommentBody.success
                     console.log "#{req.body}: This is the tidebot comment post body for success"
                 return
             
