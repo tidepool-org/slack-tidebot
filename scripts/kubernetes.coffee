@@ -118,7 +118,6 @@ module.exports = (robot) ->
             serviceBranch = branch.head.ref
             config = prCommentEnvExtractor()
             console.log config
-            packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
             tidebotPostPrComment = "repos/tidepool-org/#{serviceRepo}/issues/#{issueNumber}/comments"
@@ -198,13 +197,14 @@ module.exports = (robot) ->
                 errorMessage = { body: "Error: #{response.statusCode} #{response.error}!" }
                 github.post tidebotPostPrComment, errorMessage, (req) ->
                     console.log "TIDEBOT COMMENT POST ERROR MESSAGE: #{req.body}"
-            
+            console.log "Is #{match[1]} making it down here"
             if match[1] == "deploy" || match[1] == "default"
                 tidebotCommentBody = tidebotCommentBodyInitializer()
                 github.get environmentValuesYamlFile, (ref) ->
                     deployServiceAndStatusComment ref, false, tidebotCommentBody, "values", environmentValuesYamlFile
                 
                 if config.Service
+                    packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
                     github.get packageK8GithubYamlFile, (ref) -> 
                         deployServiceAndStatusComment ref, true, tidebotCommentBody, "package", packageK8GithubYamlFile
                 
@@ -215,17 +215,16 @@ module.exports = (robot) ->
                 github.post tidebotPostPrComment, tidebotCommentBody.success, (req) ->
                     console.log tidebotCommentBody.success
                     console.log "#{req.body}: This is the tidebot comment post body for success"
+                return
             
             else if match[1] == "query"
                 if config.Service
+                    packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
                     github.get packageK8GithubYamlFile, (ref) -> 
                         tidebotPostPrFunction ref
                 else
                     github.get tidepoolGithubYamlFile, (ref) -> 
                         tidebotPostPrFunction ref
-
+                return
         announceRepoEvent adapter, datas, eventType, (what) ->
             robot.messageRoom room, what
-            timeOut = () ->
-                res.send "OK"
-            setTimeout(timeOut, 8000)
