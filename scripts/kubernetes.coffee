@@ -194,11 +194,14 @@ module.exports = (robot) ->
                     robot.messageRoom room, "#{deployService.message}"
                 github.post tidebotPostPrComment, tidebotCommentBody[serviceType], (req) ->
                     console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR #{serviceType} SERVICE HELMRELEASE FILE IS SUCCESSFUL: #{req.body}"
-            
+                github.post tidebotPostPrComment, tidebotCommentBody.success, (req) ->
+                    console.log "#{req.body}: This is the tidebot comment post body for success"
+
             github.handleErrors (response) ->
                 errorMessage = { body: "Error: #{response.statusCode} #{response.error}!" }
                 github.post tidebotPostPrComment, errorMessage, (req) ->
                     console.log "TIDEBOT COMMENT POST ERROR MESSAGE: #{req.body}"
+           
             if match[1] == "deploy" || match[1] == "default"
                 tidebotCommentBody = tidebotCommentBodyInitializer()
                 github.get environmentValuesYamlFile, (ref) ->
@@ -212,9 +215,6 @@ module.exports = (robot) ->
                 else
                     github.get tidepoolGithubYamlFile, (ref) -> 
                         deployServiceAndStatusComment ref, true, tidebotCommentBody, "tidepool", tidepoolGithubYamlFile
-
-                github.post tidebotPostPrComment, tidebotCommentBody.success, (req) ->
-                    console.log "#{req.body}: This is the tidebot comment post body for success"
                 return
             
             else if match[1] == "query"
