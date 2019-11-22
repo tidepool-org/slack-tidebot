@@ -228,5 +228,4 @@ module.exports = (robot) ->
         announceRepoEvent adapter, datas, eventType, (what) ->
             robot.messageRoom room, what
             res.send "OK"
-        return
     return
