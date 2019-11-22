@@ -194,8 +194,9 @@ module.exports = (robot) ->
                     robot.messageRoom room, "#{deployService.message}"
                 github.post tidebotPostPrComment, tidebotCommentBody[serviceType], (req) ->
                     console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR #{serviceType} SERVICE HELMRELEASE FILE IS SUCCESSFUL: #{req.body}"
-                github.post tidebotPostPrComment, tidebotCommentBody.success, (req) ->
-                    console.log "#{req.body}: This is the tidebot comment post body for success"
+                if serviceType == tidepool
+                    github.post tidebotPostPrComment, tidebotCommentBody.success, (req) ->
+                        console.log "#{req.body}: This is the tidebot comment post body for success"
 
             github.handleErrors (response) ->
                 errorMessage = { body: "Error: #{response.statusCode} #{response.error}!" }
