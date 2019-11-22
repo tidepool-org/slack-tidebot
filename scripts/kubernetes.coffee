@@ -25,7 +25,6 @@ Base64 = require('js-base64').Base64;
 eventTypes = []
 inputToRepoMap = JSON.parse(process.env.inputToRepoMap)
 inputToEnvironmentMap = JSON.parse(process.env.inputToEnvironmentMap)
-console.log inputToEnvironmentMap
 serviceRepoToService = JSON.parse(process.env.serviceRepoToService)
 inputToRepoMapLocal = {
     "shared": "cluster-shared",
@@ -93,10 +92,13 @@ module.exports = (robot) ->
         branches = datas.issue.pull_request.url
         console.log "At #{commentTimeCreated}, #{commenterAutho} #{sender} posted comment ##{commentNumber} '#{comments}' to PR in #{serviceRepo} issue ##{issueNumber}"
         console.log "Comment URL #{getComment}"
+        match = comments.match(/^.*?\/\b(deploy|query|default)\s+([-_\.a-zA-z0-9]+)\s*?/)
+        console.log "#{match[1]} #{match[2]}"
         github.get branches, (branch) ->
             console.log "Grabbed Service Branch"
-            match = comments.match(/^.*?\/\b(deploy|query|default)\s+([-_\.a-zA-z0-9]+)\s*?/)
-            console.log "#{match[1]} #{match[2]}"
+            if match[1] = null
+                console.log "/ Comment no longer active"
+                return
             # function that takes users pr comment and extracts the Repo and Environment
             prCommentEnvExtractor = () ->
                 if process.env.inputToRepoMap == undefined
@@ -221,8 +223,9 @@ module.exports = (robot) ->
                 else
                     github.get tidepoolGithubYamlFile, (ref) -> 
                         tidebotPostPrFunction ref
-
+            return
         announceRepoEvent adapter, datas, eventType, (what) ->
             robot.messageRoom room, what
             res.send "OK"
-
+        return
+    return
