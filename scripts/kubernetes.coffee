@@ -24,11 +24,7 @@ eventTypesRaw = process.env['HUBOT_GITHUB_EVENT_NOTIFIER_TYPES']
 Base64 = require('js-base64').Base64;
 eventTypes = []
 inputToRepoMap = JSON.parse(process.env.inputToRepoMap)
-console.log process.env
-console.log inputToRepoMap.test + " checking output of input to repo map"
 inputToEnvironmentMap = JSON.parse(process.env.inputToEnvironmentMap)
-console.log "PROCESS.ENV: " + inputToEnvironmentMap["int"]
-console.log "PROCESS.ENV: " + inputToEnvironmentMap.prd
 serviceRepoToService = JSON.parse(process.env.serviceRepoToService)
 inputToRepoMapLocal = {
     "shared": "cluster-shared",
@@ -88,26 +84,28 @@ module.exports = (robot) ->
         comments = datas.comment.body
         getComment = datas.comment.url
         issueNumber = datas.issue.number
+        commentNumber = datas.issue.comments
+        commentTimeCreated = datas.comment.updated_at
+        commenterAutho = datas.comment.author_association
         sender = datas.sender.login
         serviceRepo = datas.repository.name
         branches = datas.issue.pull_request.url
-        console.log "Get Service Repo Information"
+        console.log "At #{commentTimeCreated}, #{commenterAutho} #{sender} posted comment ##{commentNumber} '#{comments}' to PR in #{serviceRepo} issue ##{issueNumber}"
+        console.log "Comment URL #{getComment}"
         github.get branches, (branch) ->
-            console.log "Get Service Branch Information"
             match = comments.match(/^.*?\/\b(deploy|query|default)\s+([-_\.a-zA-z0-9]+)\s*?/)
             # function that takes users pr comment and extracts the Repo and Environment
             prCommentEnvExtractor = () ->
                 if match == null
                     console.log "This command to deploy to #{match[1]} is not valid or the environment #{match[1]} does not exist."
                 else if process.env.inputToRepoMap == undefined
-                    console.log "Used Hard Coded ENV Variables For Config"
+                    console.log "ENV variables failed: Used Hard Coded ENV Variables For Config"
                     {
                         Env: inputToEnvironmentMapLocal[match[2]],
                         Repo: inputToRepoMapLocal[match[2]],
                         Service: serviceRepoToServiceLocal[serviceRepo]
                     }
                 else
-                    console.log "Used Environment Variables From Config"
                     {
                         Env: inputToEnvironmentMap[match[2]],
                         Repo: inputToRepoMap[match[2]],
@@ -121,7 +119,7 @@ module.exports = (robot) ->
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
             tidebotPostPrComment = "repos/tidepool-org/#{serviceRepo}/issues/#{issueNumber}/comments"
             
-            repoToServices = (serviceRepo) ->
+            repoToServices = () ->
                 if serviceRepo == "platform"
                     console.log "Service repo is platform. adding platform services to kubernetes"
                     ["data", "blob", "auth", "image", "migrations", "notification", "task", "tools", "user"]
@@ -132,9 +130,9 @@ module.exports = (robot) ->
                 yamlFileDecoded = Base64.decode(ref.content)
                 yamlFileParsed = YAML.parse(yamlFileDecoded)
                 dockerImageFilter = "glob:" + serviceBranch + "-*"
-                if match[1] == "default"
+                if match[1] = "default"
                     dockerImageFilter =  "glob:master-*"
-                theList = repoToServices serviceRepo
+                theList = repoToServices()
                 for platform in theList
                     repoDestination = "fluxcd.io/tag." + platform
                     if changeAnnotations
@@ -152,9 +150,8 @@ module.exports = (robot) ->
             yamlFileDecodeForQuery = (ref) ->
                 yamlFileDecoded = Base64.decode(ref.content)
                 yamlFileParsed = YAML.parse(yamlFileDecoded)
-                theList = repoToServices serviceRepo
+                theList = repoToServices()
                 for platform in theList
-                    console.log "SERVICE REPO: #{platform}"
                     if config.Service
                         {body: "image: " + yamlFileParsed.spec.values.deployment.image}
                     else if yamlFileParsed.spec.values[platform] == undefined
@@ -163,14 +160,14 @@ module.exports = (robot) ->
                         {body: "image: " + yamlFileParsed.spec.values[platform].deployment.image}
                     
 
-            deployYamlFile = (ref, newYamlFileEncoded, sender, serviceRepo, serviceBranch, config, changeAnnotations) ->
+            deployYamlFile = (ref, newYamlFileEncoded, changeAnnotations) ->
                 {
                     message: if changeAnnotations then "#{sender} updated helmrelease.yaml file in #{config.Env}" else "#{sender} updated values.yaml file in #{config.Env}",
                     content: newYamlFileEncoded,
                     sha: ref.sha
                 }
             
-            tidebotCommentBodyInitializer = (sender, serviceRepo, serviceBranch, config) ->
+            tidebotCommentBodyInitializer = () ->
                 {
                     package: if config.Service then { body: "#{sender} updated #{config.Service}-helmrelease.yaml file in #{config.Env}" } else {body: "OK"},                   
                     success: { body: "#{sender} deployed #{serviceRepo} #{serviceBranch} branch to #{config.Env} environment" },
@@ -181,19 +178,16 @@ module.exports = (robot) ->
             tidebotPostPrFunction = (ref) ->
                 currentDeployedBranch = yamlFileDecodeForQuery ref
                 console.log currentDeployedBranch[0]
-                console.log "COMMENT POST ENDPOINT #{tidebotPostPrComment}"
                 github.post tidebotPostPrComment, currentDeployedBranch[0], (req) ->
                     console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR QUERIED BRANCH DEPLOYED: #{req.body}"
 
             deployServiceAndStatusComment = (ref, changeAnnotations, tidebotCommentBody, serviceType, yamlFileType) ->
                 console.log "Deploy #{serviceType} service yaml retrieved for updating"
                 yamlFileEncodeForKubeConfig = yamlFileEncode ref, changeAnnotations
-                deployService = deployYamlFile ref, yamlFileEncodeForKubeConfig, sender, serviceRepo, serviceBranch, config, changeAnnotations
+                deployService = deployYamlFile ref, yamlFileEncodeForKubeConfig, changeAnnotations
                 github.put yamlFileType, deployService, (req) ->
                     console.log "THIS WILL SHOW IF #{serviceType} SERVICE HELMRELEASE FILE SUCCESSFULLY UPDATES: #{deployService.message}"
                     robot.messageRoom room, "#{deployService.message}"
-                    console.log "COMMENT BODY AFTER SUCCESFULL #{serviceType} SERVICE HELRELEASE FILE UPDATE: #{tidebotCommentBody[serviceType].body}"
-                    console.log "COMMENT PATH: #{tidebotPostPrComment}"
                 github.post tidebotPostPrComment, tidebotCommentBody[serviceType], (req) ->
                     console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR #{serviceType} SERVICE HELMRELEASE FILE IS SUCCESSFUL: #{req.body}"
             
@@ -203,7 +197,7 @@ module.exports = (robot) ->
                     console.log "TIDEBOT COMMENT POST ERROR MESSAGE: #{req.body}"
             
             if match[1] == "deploy" || match[1] == "default"
-                tidebotCommentBody = tidebotCommentBodyInitializer sender, serviceRepo, serviceBranch, config
+                tidebotCommentBody = tidebotCommentBodyInitializer()
                 github.get environmentValuesYamlFile, (ref) ->
                     deployServiceAndStatusComment ref, false, tidebotCommentBody, "values", environmentValuesYamlFile
                 
