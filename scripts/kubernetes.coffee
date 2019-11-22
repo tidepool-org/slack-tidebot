@@ -221,7 +221,7 @@ module.exports = (robot) ->
                     github.get tidepoolGithubYamlFile, (ref) -> 
                         tidebotPostPrFunction ref
 
-    announceRepoEvent adapter, datas, eventType, (what) ->
-        robot.messageRoom room, what
-        res.send "OK"
+        announceRepoEvent adapter, datas, eventType, (what) ->
+            robot.messageRoom room, what
+            res.send "OK"
 
