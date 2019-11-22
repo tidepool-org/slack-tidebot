@@ -25,6 +25,7 @@ Base64 = require('js-base64').Base64;
 eventTypes = []
 inputToRepoMap = JSON.parse(process.env.inputToRepoMap)
 inputToEnvironmentMap = JSON.parse(process.env.inputToEnvironmentMap)
+console.log inputToEnvironmentMap
 serviceRepoToService = JSON.parse(process.env.serviceRepoToService)
 inputToRepoMapLocal = {
     "shared": "cluster-shared",
@@ -96,11 +97,8 @@ module.exports = (robot) ->
             console.log "Grabbed Service Branch"
             match = comments.match(/^.*?\/\b(deploy|query|default)\s+([-_\.a-zA-z0-9]+)\s*?/)
             console.log "#{match[1]} #{match[2]}"
-            if match = null
-                console.log "/ Comment no longer active"
-                return
             # function that takes users pr comment and extracts the Repo and Environment
-            prCommentEnvExtractor = (match) ->
+            prCommentEnvExtractor = () ->
                 if process.env.inputToRepoMap == undefined
                     console.log "ENV variables failed: Used Hard Coded ENV Variables For Config"
                     {
@@ -116,7 +114,7 @@ module.exports = (robot) ->
                     }
                 
             serviceBranch = branch.head.ref
-            config = prCommentEnvExtractor(match)
+            config = prCommentEnvExtractor()
             console.log config
             packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
