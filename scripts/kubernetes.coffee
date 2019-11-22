@@ -82,10 +82,6 @@ module.exports = (robot) ->
             console.log "user is not authorized to for this command"
             return
         comments = datas.comment.body
-        match = comments.match(/^.*?\/\b(deploy|query|default)\s+([-_\.a-zA-z0-9]+)\s*?/)
-        if match = null
-            console.log "/ Comment no longer active"
-            return
         getComment = datas.comment.url
         issueNumber = datas.issue.number
         commentNumber = datas.issue.comments
@@ -97,8 +93,13 @@ module.exports = (robot) ->
         console.log "At #{commentTimeCreated}, #{commenterAutho} #{sender} posted comment ##{commentNumber} '#{comments}' to PR in #{serviceRepo} issue ##{issueNumber}"
         console.log "Comment URL #{getComment}"
         github.get branches, (branch) ->
+            console.log "Grabbed Service Branch"
+            match = comments.match(/^.*?\/\b(deploy|query|default)\s+([-_\.a-zA-z0-9]+)\s*?/)
+            if match = null
+                console.log "/ Comment no longer active"
+                return
             # function that takes users pr comment and extracts the Repo and Environment
-            prCommentEnvExtractor = () ->
+            prCommentEnvExtractor = (match) ->
                 if process.env.inputToRepoMap == undefined
                     console.log "ENV variables failed: Used Hard Coded ENV Variables For Config"
                     {
@@ -114,7 +115,7 @@ module.exports = (robot) ->
                     }
                 
             serviceBranch = branch.head.ref
-            config = prCommentEnvExtractor()
+            config = prCommentEnvExtractor(match)
             packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/environments/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
