@@ -82,6 +82,8 @@ module.exports = (robot) ->
             console.log "user is not authorized to for this command"
             return
         comments = datas.comment.body
+        match = comments.match(/^.*?\/\b(deploy|query|default)\s+([-_\.a-zA-z0-9]+)\s*?/)
+        console.log match
         getComment = datas.comment.url
         issueNumber = datas.issue.number
         commentNumber = datas.issue.comments
@@ -93,11 +95,10 @@ module.exports = (robot) ->
         console.log "At #{commentTimeCreated}, #{commenterAutho} #{sender} posted comment ##{commentNumber} '#{comments}' to PR in #{serviceRepo} issue ##{issueNumber}"
         console.log "Comment URL #{getComment}"
         github.get branches, (branch) ->
-            match = comments.match(/^.*?\/\b(deploy|query|default)\s+([-_\.a-zA-z0-9]+)\s*?/)
             # function that takes users pr comment and extracts the Repo and Environment
             prCommentEnvExtractor = () ->
                 if match == null
-                    console.log "This command to deploy to #{match[1]} is not valid or the environment #{match[1]} does not exist."
+                    console.log "ERROR with " match
                 else if process.env.inputToRepoMap == undefined
                     console.log "ENV variables failed: Used Hard Coded ENV Variables For Config"
                     {
@@ -177,7 +178,6 @@ module.exports = (robot) ->
 
             tidebotPostPrFunction = (ref) ->
                 currentDeployedBranch = yamlFileDecodeForQuery ref
-                console.log currentDeployedBranch[0]
                 github.post tidebotPostPrComment, currentDeployedBranch[0], (req) ->
                     console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR QUERIED BRANCH DEPLOYED: #{req.body}"
 
