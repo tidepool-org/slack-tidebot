@@ -78,7 +78,7 @@ module.exports = (robot) ->
             return
         
         authorized = datas.comment.author_association
-        if !(authorized == "COLLABORATOR" || authorized == "MEMBER" || authorized == "OWNER")
+        if !(authorized == "CONTRIBUTOR" || authorized == "COLLABORATOR" || authorized == "MEMBER" || authorized == "OWNER")
             console.log "user is not authorized to for this command"
             return
         comments = datas.comment.body
