@@ -130,7 +130,9 @@ module.exports = (robot) ->
             yamlFileEncode = (ref, changeAnnotations) ->
                 yamlFileDecoded = Base64.decode(ref.content)
                 yamlFileParsed = YAML.parse(yamlFileDecoded)
-                dockerImageFilter = "glob:" + serviceBranch + "-*"
+                # Docker images are based on branch name. But "/" are replaced with "-"
+                # For example, the branch "pazaan/fix-errors" becomes a docker image called "pazaan-fix-errors"
+                dockerImageFilter = "glob:" + serviceBranch.replace(/\//g, "-") + "-*"
                 if match[1] == "default"
                     dockerImageFilter =  "glob:master-*"
                 theList = repoToServices()
