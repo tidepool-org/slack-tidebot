@@ -26,36 +26,6 @@ eventTypes = []
 inputToRepoMap = JSON.parse(process.env.inputToRepoMap)
 inputToEnvironmentMap = JSON.parse(process.env.inputToEnvironmentMap)
 serviceRepoToService = JSON.parse(process.env.serviceRepoToService)
-inputToRepoMapLocal = {
-    "shared": "cluster-shared",
-    "qa1": "cluster-qa1",
-    "dev": "cluster-qa1",
-    "qa2": "cluster-qa2",
-    "int": "cluster-integration",
-    "integration": "cluster-integration",
-    "prd": "cluster-production",
-    "prod": "cluster-production",
-    "production": "cluster-production",
-    "test": "integration-test",
-    "stg": "cluster-staging",
-    "staging": "cluster-staging"
-}
-inputToEnvironmentMapLocal = {
-    "qa1": "qa1",
-    "dev": "qa1",
-    "qa2": "qa2",
-    "int": "external",
-    "integration": "external",
-    "prd": "production",
-    "prod": "production",
-    "production": "production",
-    "test": "integration-test",
-    "stg": "staging",
-    "staging": "staging"
-}
-serviceRepoToServiceLocal = {
-    "slack-tidebot": "tidebot"
-}
 
 announceRepoEvent = (adapter, datas, eventType, cb) ->
   if eventActions[eventType]?
@@ -64,6 +34,15 @@ announceRepoEvent = (adapter, datas, eventType, cb) ->
     cb("Received a new #{eventType} event, just so you know.")
 
 module.exports = (robot) ->
+    if process.env.inputToRepoMap == undefined 
+        console.log "Input to Repo config not found"
+        return
+    if process.env.inputToEnvironmentMap == undefined
+        console.log "Input to Environment config not found"
+        return
+    if process.env.serviceRepoToService == undefined
+        console.log "Service Repo to Service config not found"
+        return
     github = require('githubot')(robot)
     
     robot.router.post '/hubot/gh-repo-events', (req, res) ->
@@ -100,19 +79,11 @@ module.exports = (robot) ->
                 return
             # function that takes users pr comment and extracts the Repo and Environment
             prCommentEnvExtractor = () ->
-                if process.env.inputToRepoMap == undefined
-                    console.log "ENV variables failed: Used Hard Coded ENV Variables For Config"
-                    {
-                        Env: inputToEnvironmentMapLocal[match[2]],
-                        Repo: inputToRepoMapLocal[match[2]],
-                        Service: serviceRepoToServiceLocal[serviceRepo]
-                    }
-                else
-                    {
-                        Env: inputToEnvironmentMap[match[2]],
-                        Repo: inputToRepoMap[match[2]],
-                        Service: serviceRepoToService[serviceRepo]
-                    }
+                {
+                    Env: inputToEnvironmentMap[match[2]],
+                    Repo: inputToRepoMap[match[2]],
+                    Service: serviceRepoToService[serviceRepo]
+                }
                 
             serviceBranch = branch.head.ref
             config = prCommentEnvExtractor()
