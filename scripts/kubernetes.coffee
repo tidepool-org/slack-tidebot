@@ -24,8 +24,8 @@ eventTypesRaw = process.env['HUBOT_GITHUB_EVENT_NOTIFIER_TYPES']
 Base64 = require('js-base64').Base64;
 eventTypes = []
 inputToRepoMap = JSON.parse(process.env.inputToRepoMap)
-inputToEnvironmentMap = JSON.parse(process.env.inputToEnvironmentMap)
-serviceRepoToService = JSON.parse(process.env.serviceRepoToService)
+inputToNamespaceMap = JSON.parse(process.env.inputToNamespaceMap)
+serviceRepoToPackage = JSON.parse(process.env.serviceRepoToPackage)
 
 announceRepoEvent = (adapter, datas, eventType, cb) ->
   if eventActions[eventType]?
@@ -37,10 +37,10 @@ module.exports = (robot) ->
     if process.env.inputToRepoMap == undefined 
         console.log "Input to Repo config not found"
         return
-    if process.env.inputToEnvironmentMap == undefined
+    if process.env.inputToNamespaceMap == undefined
         console.log "Input to Environment config not found"
         return
-    if process.env.serviceRepoToService == undefined
+    if process.env.serviceRepoToPackage == undefined
         console.log "Service Repo to Service config not found"
         return
     github = require('githubot')(robot)
@@ -80,14 +80,23 @@ module.exports = (robot) ->
             # function that takes users pr comment and extracts the Repo and Environment
             prCommentEnvExtractor = () ->
                 {
-                    Env: inputToEnvironmentMap[match[2]],
+                    Namespace: inputToNamespaceMap[match[2]],
                     Repo: inputToRepoMap[match[2]],
-                    Service: serviceRepoToService[serviceRepo]
+                    Service: serviceRepoToPackage[serviceRepo]
                 }
                 
             serviceBranch = branch.head.ref
             config = prCommentEnvExtractor()
-            tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Env}/${config.Service}/helmrelease.yaml"
+            if config.Repo == undefined 
+                console.log "Tidebot does not have a Repo config for #{match[2]} here is the config \n #{inputToRepoMap}"
+                return
+            if config.Namespace == undefined
+                console.log "Tidebot does not have a Namespace config for #{match[2]} here is the config \n #{inputToNamespaceMap}"
+                return
+            if config.Service == undefined
+                console.log "Tidebot does not have a Package config for #{serviceRepo} here is the config \n #{serviceRepoToPackage}"
+                return
+            tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Namespace}/#{config.Service}/helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
             tidebotPostPrComment = "repos/tidepool-org/#{serviceRepo}/issues/#{issueNumber}/comments"
             
@@ -105,14 +114,14 @@ module.exports = (robot) ->
                 # For example, the branch "pazaan/fix-errors" becomes a docker image called "pazaan-fix-errors"
                 dockerImageFilter = "glob:" + serviceBranch.replace(/\//g, "-") + "-*"
                 if match[1] == "default"
-                    dockerImageFilter =  "glob:master-*"   # XXX check this
+                    dockerImageFilter =  "glob:master-*"  
                 theList = repoToServices()
                 for platform in theList
                     repoDestination = "fluxcd.io/tag." + platform
                     if changeAnnotations
                         console.log "Change Annotations is true so parsed yaml file == tidepoolGithubYamlFile"
                         yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
-                        yamlFileParsed.namespaces[config.Env][config.Service].gitops[platform] = dockerImageFilter
+                        yamlFileParsed.namespaces[config.Namespace][config.Service].gitops[platform] = dockerImageFilter
                 newYamlFileUpdated = YAML.stringify(yamlFileParsed)
                 Base64.encode(newYamlFileUpdated)
 
@@ -121,31 +130,25 @@ module.exports = (robot) ->
                 yamlFileParsed = YAML.parse(yamlFileDecoded)
                 theList = repoToServices()
                 for platform in theList
-                    if config.Service
-                        {body: "image: " + yamlFileParsed.spec.values.deployment.image}
-                    else if yamlFileParsed.spec.values[platform] == undefined
-                        { body: "ERROR: Can not find deployed #{serviceRepo} or #{serviceRepo} has not been deployed to #{config.Env}" }
+                    if yamlFileParsed.spec.values[platform] == undefined
+                        { body: "ERROR: Can not find deployed #{serviceRepo} or #{serviceRepo} has not been deployed to #{config.Namespace}" }
                     else
                         {body: "image: " + yamlFileParsed.spec.values[platform].deployment.image}
                     
 
             deployYamlFile = (ref, newYamlFileEncoded, changeAnnotations) ->
-                if config.Service
-                    config.Env = "cluster-#{match[2]}"
                 {
-                    message: if changeAnnotations then "#{sender} updated helmrelease.yaml file in #{config.Env}" else "#{sender} updated values.yaml file in #{config.Env}",
+                    message: if changeAnnotations then "#{sender} updated helmrelease.yaml file in #{config.Namespace}" else "#{sender} updated values.yaml file in #{config.Namespace}",
                     content: newYamlFileEncoded,
                     sha: ref.sha
                 }
             
             tidebotCommentBodyInitializer = () ->
-                if config.Service
-                    config.Env = "cluster-#{match[2]}"
                 {
-                    package: if config.Service then { body: "#{sender} updated helmrelease.yaml file in #{config.Env}" } else {body: "OK"},                   
-                    success: { body: "#{sender} deployed #{serviceRepo} #{serviceBranch} branch to #{config.Env} environment" },
-                    values: { body: "#{sender} updated values.yaml file in #{config.Env}" },
-                    tidepool: { body: "#{sender} updated helmrelease.yaml file in #{config.Env}" }
+                    package: if config.Service then { body: "#{sender} updated helmrelease.yaml file in #{config.Namespace}" } else {body: "OK"},                   
+                    success: { body: "#{sender} deployed #{serviceRepo} #{serviceBranch} branch to #{config.Namespace} namespace" },
+                    values: { body: "#{sender} updated values.yaml file in #{config.Namespace}" },
+                    tidepool: { body: "#{sender} updated helmrelease.yaml file in #{config.Namespace}" }
                 }
 
             tidebotPostPrFunction = (ref) ->
@@ -176,23 +179,12 @@ module.exports = (robot) ->
                 github.get environmentValuesYamlFile, (ref) ->
                     deployServiceAndStatusComment ref, false, tidebotCommentBody, "values", environmentValuesYamlFile
                 
-                if config.Service
-                    packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Env}/#{config.Service}/helmrelease.yaml"
-                    github.get packageK8GithubYamlFile, (ref) -> 
-                        deployServiceAndStatusComment ref, true, tidebotCommentBody, "package", packageK8GithubYamlFile
-                
-                else
-                    github.get tidepoolGithubYamlFile, (ref) -> 
+                github.get tidepoolGithubYamlFile, (ref) -> 
                         deployServiceAndStatusComment ref, true, tidebotCommentBody, "tidepool", tidepoolGithubYamlFile
                 return
             
             else if match[1] == "query"
-                if config.Service
-                    packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Env}/#{config.Service}/helmrelease.yaml"
-                    github.get packageK8GithubYamlFile, (ref) -> 
-                        tidebotPostPrFunction ref
-                else
-                    github.get tidepoolGithubYamlFile, (ref) -> 
+                github.get tidepoolGithubYamlFile, (ref) -> 
                         tidebotPostPrFunction ref
                 return
         announceRepoEvent adapter, datas, eventType, (what) ->
