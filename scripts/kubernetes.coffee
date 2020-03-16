@@ -121,6 +121,8 @@ module.exports = (robot) ->
                     if changeAnnotations
                         console.log "Change Annotations is true so parsed yaml file == tidepoolGithubYamlFile"
                         yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
+                    else
+                        console.log "Change Annotations is false and service is a tidepool service so parsed yaml file == environmentValuesYamlFile"
                         yamlFileParsed.namespaces[config.Namespace][config.Service].gitops[platform] = dockerImageFilter
                 newYamlFileUpdated = YAML.stringify(yamlFileParsed)
                 Base64.encode(newYamlFileUpdated)
