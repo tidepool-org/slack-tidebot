@@ -87,7 +87,7 @@ module.exports = (robot) ->
                 
             serviceBranch = branch.head.ref
             config = prCommentEnvExtractor()
-            tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Env}/tidepool/helmrelease.yaml"
+            tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Env}/${config.Service}/helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
             tidebotPostPrComment = "repos/tidepool-org/#{serviceRepo}/issues/#{issueNumber}/comments"
             
