@@ -87,7 +87,7 @@ module.exports = (robot) ->
                 
             serviceBranch = branch.head.ref
             config = prCommentEnvExtractor()
-            tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Env}/tidepool/tidepool-helmrelease.yaml"
+            tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Env}/tidepool/helmrelease.yaml"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
             tidebotPostPrComment = "repos/tidepool-org/#{serviceRepo}/issues/#{issueNumber}/comments"
             
@@ -105,19 +105,14 @@ module.exports = (robot) ->
                 # For example, the branch "pazaan/fix-errors" becomes a docker image called "pazaan-fix-errors"
                 dockerImageFilter = "glob:" + serviceBranch.replace(/\//g, "-") + "-*"
                 if match[1] == "default"
-                    dockerImageFilter =  "glob:master-*"
+                    dockerImageFilter =  "glob:master-*"   # XXX check this
                 theList = repoToServices()
                 for platform in theList
                     repoDestination = "fluxcd.io/tag." + platform
                     if changeAnnotations
                         console.log "Change Annotations is true so parsed yaml file == tidepoolGithubYamlFile"
                         yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
-                    else if config.Service
-                        console.log "Change Annotations is false and service is an external service so parsed yaml file == external environmentValuesYamlFile"
-                        yamlFileParsed.pkgs[config.Service].gitops = dockerImageFilter
-                    else
-                        console.log "Change Annotations is false and service is a tidepool service so parsed yaml file == environmentValuesYamlFile"
-                        yamlFileParsed.namespaces[config.Env].tidepool.gitops[platform] = dockerImageFilter
+                        yamlFileParsed.namespaces[config.Env][config.Service].gitops[platform] = dockerImageFilter
                 newYamlFileUpdated = YAML.stringify(yamlFileParsed)
                 Base64.encode(newYamlFileUpdated)
 
@@ -147,10 +142,10 @@ module.exports = (robot) ->
                 if config.Service
                     config.Env = "cluster-#{match[2]}"
                 {
-                    package: if config.Service then { body: "#{sender} updated #{config.Service}-helmrelease.yaml file in #{config.Env}" } else {body: "OK"},                   
+                    package: if config.Service then { body: "#{sender} updated helmrelease.yaml file in #{config.Env}" } else {body: "OK"},                   
                     success: { body: "#{sender} deployed #{serviceRepo} #{serviceBranch} branch to #{config.Env} environment" },
                     values: { body: "#{sender} updated values.yaml file in #{config.Env}" },
-                    tidepool: { body: "#{sender} updated tidepool-helmrelease.yaml file in #{config.Env}" }
+                    tidepool: { body: "#{sender} updated helmrelease.yaml file in #{config.Env}" }
                 }
 
             tidebotPostPrFunction = (ref) ->
@@ -182,7 +177,7 @@ module.exports = (robot) ->
                     deployServiceAndStatusComment ref, false, tidebotCommentBody, "values", environmentValuesYamlFile
                 
                 if config.Service
-                    packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
+                    packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Env}/#{config.Service}/helmrelease.yaml"
                     github.get packageK8GithubYamlFile, (ref) -> 
                         deployServiceAndStatusComment ref, true, tidebotCommentBody, "package", packageK8GithubYamlFile
                 
@@ -193,7 +188,7 @@ module.exports = (robot) ->
             
             else if match[1] == "query"
                 if config.Service
-                    packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Service}/#{config.Service}-helmrelease.yaml"
+                    packageK8GithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Env}/#{config.Service}/helmrelease.yaml"
                     github.get packageK8GithubYamlFile, (ref) -> 
                         tidebotPostPrFunction ref
                 else
