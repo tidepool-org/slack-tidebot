@@ -7,8 +7,8 @@ data:
   HUBOT_SLACK_ACCOUNT: {{ .HUBOT_SLACK_ACCOUNT | default "" }}
   HUBOT_SLACK_ROOMS: {{ .HUBOT_SLACK_ROOMS | default "" }}
   inputToRepoMap: {{ .inputToRepoMap | default "" }}
-  inputToEnvironmentMap: {{ .inputToEnvironmentMap | default "" }}
-  serviceRepoToService: {{ .serviceRepoToService | default "" }}
+  inputToEnvironmentMap: {{ .inputToNamespaceMap | default "" }}
+  serviceRepoToService: {{ .serviceRepoToPackage | default "" }}
 {{- end }}
 kind: ConfigMap
 metadata:
