@@ -72,17 +72,17 @@ spec:
               name: tidebot
               key: inputToRepoMap
               optional: false
-        - name: inputToEnvironmentMap
+        - name: inputToNamespaceMap
           valueFrom:
             configMapKeyRef:
               name: tidebot
-              key: inputToEnvironmentMap
+              key: inputToNamespaceMap
               optional: false
-        - name: serviceRepoToService
+        - name: serviceRepoToPackage
           valueFrom:
             configMapKeyRef:
               name: tidebot
-              key: serviceRepoToService
+              key: serviceRepoToPackage
               optional: false
         image: "{{ .image }}"
         livenessProbe:
