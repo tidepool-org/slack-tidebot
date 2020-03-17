@@ -146,9 +146,13 @@ module.exports = (robot) ->
                 }
             
             tidebotCommentBodyInitializer = () ->
+                if match[1] == "default"
+                    branch = "Master"
+                else 
+                    branch = serviceBranch
                 {
                     package: if config.Service then { body: "#{sender} updated helmrelease.yaml file in #{config.Namespace}" } else {body: "OK"},                   
-                    success: { body: "#{sender} deployed #{serviceRepo} #{serviceBranch} branch to #{config.Namespace} namespace" },
+                    success: { body: "#{sender} deployed #{serviceRepo} #{branch} branch to #{config.Namespace} namespace" },
                     values: { body: "#{sender} updated values.yaml file in #{config.Namespace}" },
                     tidepool: { body: "#{sender} updated helmrelease.yaml file in #{config.Namespace}" }
                 }
