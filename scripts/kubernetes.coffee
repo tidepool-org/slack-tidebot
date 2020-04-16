@@ -96,7 +96,7 @@ module.exports = (robot) ->
             if config.Service == undefined
                 console.log "Tidebot does not have a Package config for #{serviceRepo} here is the config \n #{serviceRepoToPackage}"
                 return
-            tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Namespace}/#{config.Service}/helmrelease.yaml"
+            tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/manifests/pkgs/#{config.Namespace}/#{config.Service}/helmrelease.yaml"
             console.log "Path to helmrelease yaml #{tidepoolGithubYamlFile}"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
             tidebotPostPrComment = "repos/tidepool-org/#{serviceRepo}/issues/#{issueNumber}/comments"
