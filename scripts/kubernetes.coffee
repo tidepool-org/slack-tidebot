@@ -96,7 +96,8 @@ module.exports = (robot) ->
             if config.Service == undefined
                 console.log "Tidebot does not have a Package config for #{serviceRepo} here is the config \n #{serviceRepoToPackage}"
                 return
-            tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/pkgs/#{config.Namespace}/#{config.Service}/helmrelease.yaml"
+            tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/manifests/pkgs/#{config.Namespace}/#{config.Service}/helmrelease.yaml"
+            console.log "Path to helmrelease yaml #{tidepoolGithubYamlFile}"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
             tidebotPostPrComment = "repos/tidepool-org/#{serviceRepo}/issues/#{issueNumber}/comments"
             
@@ -146,9 +147,13 @@ module.exports = (robot) ->
                 }
             
             tidebotCommentBodyInitializer = () ->
+                if match[1] == "default"
+                    branch = "Master"
+                else 
+                    branch = serviceBranch
                 {
                     package: if config.Service then { body: "#{sender} updated helmrelease.yaml file in #{config.Namespace}" } else {body: "OK"},                   
-                    success: { body: "#{sender} deployed #{serviceRepo} #{serviceBranch} branch to #{config.Namespace} namespace" },
+                    success: { body: "#{sender} deployed #{serviceRepo} #{branch} branch to #{config.Namespace} namespace" },
                     values: { body: "#{sender} updated values.yaml file in #{config.Namespace}" },
                     tidepool: { body: "#{sender} updated helmrelease.yaml file in #{config.Namespace}" }
                 }
