@@ -88,15 +88,15 @@ module.exports = (robot) ->
             serviceBranch = branch.head.ref
             config = prCommentEnvExtractor()
             if config.Repo == undefined 
-                console.log "Tidebot does not have a Repo config for #{match[2]} here is the config \n #{inputToRepoMap}"
+                console.log "Tidebot does not have a Repo config for #{match[2]} here is the config \n #{JSON.stringify(inputToRepoMap)}"
                 return
             if config.Namespace == undefined
-                console.log "Tidebot does not have a Namespace config for #{match[2]} here is the config \n #{inputToNamespaceMap}"
+                console.log "Tidebot does not have a Namespace config for #{match[2]} here is the config \n #{JSON.stringify(inputToNamespaceMap)}"
                 return
             if config.Service == undefined
-                console.log "Tidebot does not have a Package config for #{serviceRepo} here is the config \n #{serviceRepoToPackage}"
+                console.log "Tidebot does not have a Package config for #{serviceRepo} here is the config \n #{JSON.stringify(serviceRepoToPackage)}"
                 return
-            tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/manifests/pkgs/#{config.Namespace}/#{config.Service}/helmrelease.yaml"
+            tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/generated/#{config.Namespace}/#{config.Service}/helmrelease.yaml"
             console.log "Path to helmrelease yaml #{tidepoolGithubYamlFile}"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
             tidebotPostPrComment = "repos/tidepool-org/#{serviceRepo}/issues/#{issueNumber}/comments"
