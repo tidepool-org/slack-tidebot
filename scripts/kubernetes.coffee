@@ -58,7 +58,7 @@ module.exports = (robot) ->
         
         authorized = datas.comment.author_association
         if !(authorized == "CONTRIBUTOR" || authorized == "COLLABORATOR" || authorized == "MEMBER" || authorized == "OWNER")
-            console.log "user is not authorized to for this command"
+            console.log "user is not authorized for this command"
             return
         comments = datas.comment.body
         getComment = datas.comment.url
@@ -103,12 +103,13 @@ module.exports = (robot) ->
             
             repoToServices = () ->
                 platformServices = ["data", "blob", "auth", "image", "migrations", "notification", "task", "tools", "user"]
-                if serviceRepo == "platform" && match[2] == null
-                    console.log "Service repo is platform. adding platform services to kubernetes"
+                if serviceRepo == "platform" && match[3] == null
+                    console.log "Service repo is platform. Adding all platform services to kubernetes"
                     platformServices
-                else if serviceRepo == "platform" && match[2] != null
+                else if serviceRepo == "platform" && match[3]?
                     for service in platformServices
-                        if match[2] == service
+                        if match[3] == service
+                            console.log "Service repo is platform. Adding #{service} platform service to kubernetes"
                             [service]
                 else
                     [serviceRepo]
@@ -139,7 +140,7 @@ module.exports = (robot) ->
                 theList = repoToServices()
                 for platform in theList
                     if yamlFileParsed.spec.values[platform] == undefined
-                        { body: "ERROR: Can not find deployed #{serviceRepo} or #{serviceRepo} has not been deployed to #{config.Namespace}" }
+                        { body: "ERROR: Can not find deployed #{plaform} or #{platform} has not been deployed to #{config.Namespace}" }
                     else
                         {body: "image: " + yamlFileParsed.spec.values[platform].deployment.image}
                     
