@@ -167,7 +167,7 @@ module.exports = (robot) ->
             tidebotPostPrFunction = (ref) ->
                 currentDeployedBranch = yamlFileDecodeForQuery ref
                 for service in currentDeployedBranch
-                    if service?
+                    if service? && service != undefined
                         github.post tidebotPostPrComment, service, (req) ->
                             console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR QUERIED BRANCH DEPLOYED: #{req.body}"
 
