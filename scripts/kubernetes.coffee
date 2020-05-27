@@ -103,7 +103,7 @@ module.exports = (robot) ->
             
             repoToServices = () ->
                 platformServices = ["data", "blob", "auth", "image", "migrations", "notification", "task", "tools", "user"]
-                if serviceRepo == "platform" && match[3] == null
+                if serviceRepo == "platform" && !match[3]?
                     console.log "Service repo is platform. Adding all platform services to kubernetes"
                     platformServices
                 else if serviceRepo == "platform" && match[3]?
