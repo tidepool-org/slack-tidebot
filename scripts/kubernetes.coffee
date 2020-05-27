@@ -71,7 +71,7 @@ module.exports = (robot) ->
         branches = datas.issue.pull_request.url
         console.log "At #{commentTimeCreated}, #{commenterAutho} #{sender} posted comment ##{commentNumber} '#{comments}' to PR in #{serviceRepo} issue ##{issueNumber}"
         console.log "Comment URL #{getComment}"
-        match = comments.match(/^.*?\/\b(deploy|query|default)\s+([-_\.a-zA-z0-9]+)\s*?/)
+        match = comments.match(/^.*?\/\b(deploy|query|default)\s+([-_\.a-zA-z0-9]+)\s*([-_\.a-zA-z0-9]+)?\s*?/) 
         github.get branches, (branch) ->
             console.log "User comment and Service Branch info retrieved ready to execute command"
             if match == null
@@ -102,9 +102,14 @@ module.exports = (robot) ->
             tidebotPostPrComment = "repos/tidepool-org/#{serviceRepo}/issues/#{issueNumber}/comments"
             
             repoToServices = () ->
-                if serviceRepo == "platform"
+                platformServices = ["data", "blob", "auth", "image", "migrations", "notification", "task", "tools", "user"]
+                if serviceRepo == "platform" && match[2] == null
                     console.log "Service repo is platform. adding platform services to kubernetes"
-                    ["data", "blob", "auth", "image", "migrations", "notification", "task", "tools", "user"]
+                    platformServices
+                else if serviceRepo == "platform" && match[2] != null
+                    for service in platformServices
+                        if match[2] == service
+                            [service]
                 else
                     [serviceRepo]
             
