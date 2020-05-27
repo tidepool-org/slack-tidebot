@@ -140,7 +140,7 @@ module.exports = (robot) ->
                 theList = repoToServices()
                 for platform in theList
                     if yamlFileParsed.spec.values[platform] == undefined
-                        { body: "ERROR: Can not find deployed #{plaform} or #{platform} has not been deployed to #{config.Namespace}" }
+                        { body: "ERROR: Can not find deployed #{platform} or #{platform} has not been deployed to #{config.Namespace}" }
                     else
                         {body: "image: " + yamlFileParsed.spec.values[platform].deployment.image}
                     
