@@ -139,10 +139,12 @@ module.exports = (robot) ->
                 yamlFileParsed = YAML.parse(yamlFileDecoded)
                 theList = repoToServices()
                 for platform in theList
-                    if yamlFileParsed.spec.values[platform] == undefined
-                        { body: "ERROR: Can not find deployed #{platform} or #{platform} has not been deployed to #{config.Namespace}" }
+                    if yamlFileParsed.spec.values[platform]?
+                       {body: "image: " + yamlFileParsed.spec.values[platform].deployment.image}
+                    else if !platform? && match[3]?
+                        null
                     else
-                        {body: "image: " + yamlFileParsed.spec.values[platform].deployment.image}
+                        { body: "ERROR: Can not find deployed #{platform} or #{platform} has not been deployed to #{config.Namespace}" }
                     
 
             deployYamlFile = (ref, newYamlFileEncoded, changeAnnotations) ->
@@ -168,6 +170,7 @@ module.exports = (robot) ->
                 currentDeployedBranch = yamlFileDecodeForQuery ref
                 for service in currentDeployedBranch
                     if service? && service != undefined
+                        console.log(service)
                         github.post tidebotPostPrComment, service, (req) ->
                             console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR QUERIED BRANCH DEPLOYED: #{req.body}"
 
