@@ -62,7 +62,8 @@ module.exports = (robot) ->
             return
         comments = datas.comment.body
         getComment = datas.comment.url
-        issueNumber = datas.issue.number
+        if datas.issue?
+            issueNumber = datas.issue.number
         commentNumber = datas.issue.comments
         commentTimeCreated = datas.comment.updated_at
         commenterAutho = datas.comment.author_association
