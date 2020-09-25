@@ -67,7 +67,6 @@ module.exports = (robot) ->
             return
 
         if datas.issue == undefined
-            console.log "can not find PR issue"
             return
         issueNumber = datas.issue.number
         commentNumber = datas.issue.comments
