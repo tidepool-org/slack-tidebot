@@ -50,34 +50,41 @@ module.exports = (robot) ->
         adapter = robot.adapterName
         room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
         datas = req.body
+        
         if datas.comment == undefined
             announceRepoEvent adapter, datas, eventType, (what) ->
                 robot.messageRoom room, what
                 res.send ("OK")
             return
-        
+        comments = datas.comment.body
+        getComment = datas.comment.url
+        commentTimeCreated = datas.comment.updated_at
+        commenterAutho = datas.comment.author_association
         authorized = datas.comment.author_association
+
         if !(authorized == "CONTRIBUTOR" || authorized == "COLLABORATOR" || authorized == "MEMBER" || authorized == "OWNER")
             console.log "user is not authorized for this command"
             return
-        comments = datas.comment.body
-        getComment = datas.comment.url
-        if datas.issue?
-            issueNumber = datas.issue.number
+
+        if datas.issue == undefined
+            console.log "can not find PR issue"
+            return
+        issueNumber = datas.issue.number
         commentNumber = datas.issue.comments
-        commentTimeCreated = datas.comment.updated_at
-        commenterAutho = datas.comment.author_association
+        branches = datas.issue.pull_request.url
+        
         sender = datas.sender.login
         serviceRepo = datas.repository.name
-        branches = datas.issue.pull_request.url
         console.log "At #{commentTimeCreated}, #{commenterAutho} #{sender} posted comment ##{commentNumber} '#{comments}' to PR in #{serviceRepo} issue ##{issueNumber}"
         console.log "Comment URL #{getComment}"
         match = comments.match(/^.*?\/\b(deploy|query|default)\s+([-_\.a-zA-z0-9]+)\s*([-_\.a-zA-z0-9]+)?\s*?/) 
+        
         github.get branches, (branch) ->
             console.log "User comment and Service Branch info retrieved ready to execute command"
             if match == null
                 console.log "/ command complete and no longer active"
                 return
+            
             # function that takes users pr comment and extracts the Repo and Environment
             prCommentEnvExtractor = () ->
                 {
