@@ -126,7 +126,7 @@ module.exports = (robot) ->
             
             yamlFileEncode = (ref, changeAnnotations) ->
                 yamlFileDecoded = Base64.decode(ref.content)
-                yamlFileParsed = YAML.parseAllDocuments(yamlFileDecoded)
+                yamlFileParsed = YAML.parse(yamlFileDecoded)
                 # Docker images are based on branch name. But "/" are replaced with "-"
                 # For example, the branch "pazaan/fix-errors" becomes a docker image called "pazaan-fix-errors"
                 dockerImageFilter = "glob:" + serviceBranch.replace(/\//g, "-") + "-*"
@@ -146,7 +146,7 @@ module.exports = (robot) ->
 
             yamlFileDecodeForQuery = (ref) ->
                 yamlFileDecoded = Base64.decode(ref.content)
-                yamlFileParsed = YAML.parseAllDocuments(yamlFileDecoded)
+                yamlFileParsed = YAML.parse(yamlFileDecoded)
                 theList = repoToServices()
                 for platform in theList
                     if yamlFileParsed.spec.values[platform]?
