@@ -152,15 +152,15 @@ module.exports = (robot) ->
                 theList = repoToServices()
                 console.log yamlFileParsed
                 for doc in yamlFileParsed
-                    console.log "TEST content: " + doc.contents.items[1].kind
+                    console.log "TEST content: " + doc.contents.items[1]["kind"]
                     console.log "TEST doc: " + doc.contents.items
-                    console.log "TEST Map: " + doc.contents[0]
+                    console.log "TEST Map: " + doc.contents[1]
                     for item in doc.contents.items
-                        if item.kind == "Deployment"
+                        if item["kind"] == "Deployment"
                             for platform in theList
                                 console.log("EXTERNAL SERVICE")
                                 console.log YAML.stringify(doc)
-                                externalServiceImage = item.spec.template.spec.containers.env.image
+                                externalServiceImage = item["spec"]["template"]["spec"]["containers"]["env"]["image"]
                                 if externalServiceImage?
                                     {body: "image: " + externalServiceImage}
                                 else
@@ -169,9 +169,9 @@ module.exports = (robot) ->
                             for platform in theList
                                 console.log("TIDEPOOL SERVICE")
                                 console.log YAML.stringify(doc)
-                                tidepoolServiceImage = item.spec.values[platform]
+                                tidepoolServiceImage = item["spec"]["values"][platform]
                                 if tidepoolServiceImage?
-                                    {body: "image: " + tidepoolServiceImage.deployment.image}
+                                    {body: "image: " + tidepoolServiceImage["deployment"]["image"]}
                                 else if !platform? && match[3]?
                                     null
                                 else
