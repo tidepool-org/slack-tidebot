@@ -126,31 +126,41 @@ module.exports = (robot) ->
             
             yamlFileEncode = (ref, changeAnnotations) ->
                 yamlFileDecoded = Base64.decode(ref.content)
-                yamlFileParsed = YAML.parse(yamlFileDecoded)
-                # Docker images are based on branch name. But "/" are replaced with "-"
-                # For example, the branch "pazaan/fix-errors" becomes a docker image called "pazaan-fix-errors"
-                dockerImageFilter = "glob:" + serviceBranch.replace(/\//g, "-") + "-*"
-                if match[1] == "default"
-                    dockerImageFilter =  "glob:master-*"  
-                theList = repoToServices()
-                for platform in theList
-                    repoDestination = "fluxcd.io/tag." + platform
-                    if changeAnnotations
-                        console.log "Change Annotations is true so parsed yaml file == tidepoolGithubYamlFile"
-                        yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
-                    else
-                        console.log "Change Annotations is false and service is a tidepool service so parsed yaml file == environmentValuesYamlFile"
-                        yamlFileParsed.namespaces[config.Namespace][config.Service].gitops[platform] = dockerImageFilter
-                newYamlFileUpdated = YAML.stringify(yamlFileParsed)
-                Base64.encode(newYamlFileUpdated)
+                yamlFileParsed = YAML.parseAllDocuments(yamlFileDecoded)
+                for doc in yamlFileParsed
+                    if doc.Kind == "Deployment" || doc.Kind == "HelmRelease"
+                        # Docker images are based on branch name. But "/" are replaced with "-"
+                        # For example, the branch "pazaan/fix-errors" becomes a docker image called "pazaan-fix-errors"
+                        dockerImageFilter = "glob:" + serviceBranch.replace(/\//g, "-") + "-*"
+                        if match[1] == "default"
+                            dockerImageFilter =  "glob:master-*"  
+                        theList = repoToServices()
+                        for platform in theList
+                            repoDestination = "fluxcd.io/tag." + platform
+                            if changeAnnotations
+                                console.log "Change Annotations is true so parsed yaml file == tidepoolGithubYamlFile"
+                                doc.metadata.annotations[repoDestination] = dockerImageFilter
+                            else
+                                console.log "Change Annotations is false and service is a tidepool service so parsed yaml file == environmentValuesYamlFile"
+                                doc.namespaces[config.Namespace][config.Service].gitops[platform] = dockerImageFilter
+                        newYamlFileUpdated = YAML.stringify(yamlFileParsed)
+                        Base64.encode(newYamlFileUpdated)
 
             yamlFileDecodeForQuery = (ref) ->
                 yamlFileDecoded = Base64.decode(ref.content)
-                yamlFileParsed = YAML.parse(yamlFileDecoded)
+                yamlFileParsed = YAML.parseAllDocuments(yamlFileDecoded)
+                tidepoolServiceImage = yamlFileParsed[0].spec.values[platform]
+                externalServiceImage = doc.spec.spec.env.image
                 theList = repoToServices()
-                for platform in theList
-                    if yamlFileParsed.spec.values[platform]?
-                       {body: "image: " + yamlFileParsed.spec.values[platform].deployment.image}
+                for doc in yamlFileParsed
+                    if doc.Kind == "Deployment"
+                        for platform in theList
+                            if externalServiceImage?
+                                {body: "image: " + externalServiceImage}
+                    if doc.Kind == "HelmRelease"    
+                        for platform in theList
+                            if tidepoolServiceImage?
+                                {body: "image: " + tidepoolServiceImage.deployment.image}
                     else if !platform? && match[3]?
                         null
                     else
