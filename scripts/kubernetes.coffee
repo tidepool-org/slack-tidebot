@@ -149,10 +149,10 @@ module.exports = (robot) ->
             yamlFileDecodeForQuery = (ref) ->
                 yamlFileDecoded = Base64.decode(ref.content)
                 yamlFileParsed = YAML.parseAllDocuments(yamlFileDecoded)
-                tidepoolServiceImage = doc.spec.values[platform]
-                externalServiceImage = doc.spec.template.spec.containers.env.image
                 theList = repoToServices()
                 for doc in yamlFileParsed
+                    tidepoolServiceImage = doc.spec.values[platform]
+                    externalServiceImage = doc.spec.template.spec.containers.env.image
                     if doc.kind == "Deployment"
                         console.log YAML.stringify(doc)
                         for platform in theList
