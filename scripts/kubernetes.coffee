@@ -149,6 +149,8 @@ module.exports = (robot) ->
             yamlFileDecodeForQuery = (ref) ->
                 yamlFileDecoded = Base64.decode(ref.content)
                 yamlFileParsed = YAML.parseAllDocuments(yamlFileDecoded)
+                console.log yamlFileParsed
+                console.log yamlFileParsed[0]
                 tidepoolServiceImage = yamlFileParsed[0].spec.values[platform]
                 externalServiceImage = doc.spec.spec.env.image
                 theList = repoToServices()
