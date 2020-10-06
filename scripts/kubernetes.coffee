@@ -151,24 +151,25 @@ module.exports = (robot) ->
                 yamlFileParsed = YAML.parseAllDocuments(yamlFileDecoded)
                 theList = repoToServices()
                 for doc in yamlFileParsed
-                    console.log YAML.stringify(doc.kind)
-                    for platform in theList
-                        if doc.kind == "Deployment"
-                            console.log("EXTERNAL SERVICE")
-                            console.log YAML.stringify(doc)
-                            externalServiceImage = doc.spec.template.spec.containers.env.image
-                            if externalServiceImage?
-                                {body: "image: " + externalServiceImage}
-                        else if doc.kind == "HelmRelease"
+                    console.log YAML.stringify(doc)
+                    console.log doc
+                    if doc.kind == "Deployment"
+                        console.log("EXTERNAL SERVICE")
+                        console.log YAML.stringify(doc)
+                        externalServiceImage = doc.spec.template.spec.containers.env.image
+                        if externalServiceImage?
+                            {body: "image: " + externalServiceImage}
+                    else if doc.kind == "HelmRelease"
+                        for platform in theList
                             console.log("TIDEPOOL SERVICE")
                             console.log YAML.stringify(doc)
                             tidepoolServiceImage = doc.spec.values[platform]
                             if tidepoolServiceImage?
                                 {body: "image: " + tidepoolServiceImage.deployment.image}
-                        else if !platform? && match[3]?
-                            null
-                        else
-                            { body: "ERROR: Can not find deployed #{platform} or #{platform} has not been deployed to #{config.Namespace}" }
+                            else if !platform? && match[3]?
+                                null
+                    else
+                        { body: "ERROR: Can not find deployed #{platform} or #{platform} has not been deployed to #{config.Namespace}" }
                     
 
             deployYamlFile = (ref, newYamlFileEncoded, changeAnnotations) ->
