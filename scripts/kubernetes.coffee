@@ -152,7 +152,7 @@ module.exports = (robot) ->
                 theList = repoToServices()
                 for doc in yamlFileParsed
                     console.log YAML.stringify(doc)
-                    console.log "TEST: " + doc.contents.YAMLMap.items[0]
+                    console.log "TEST: " + doc.contents
                     if doc.kind == "Deployment"
                         for platform in theList
                             console.log("EXTERNAL SERVICE")
