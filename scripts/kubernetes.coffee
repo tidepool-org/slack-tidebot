@@ -152,13 +152,16 @@ module.exports = (robot) ->
                 theList = repoToServices()
                 for doc in yamlFileParsed
                     console.log YAML.stringify(doc)
-                    console.log doc
+                    console.log "TEST: " + doc.Document.contents.YAMLMap.items[0]
                     if doc.kind == "Deployment"
-                        console.log("EXTERNAL SERVICE")
-                        console.log YAML.stringify(doc)
-                        externalServiceImage = doc.spec.template.spec.containers.env.image
-                        if externalServiceImage?
-                            {body: "image: " + externalServiceImage}
+                        for platform in theList
+                            console.log("EXTERNAL SERVICE")
+                            console.log YAML.stringify(doc)
+                            externalServiceImage = doc.spec.template.spec.containers.env.image
+                            if externalServiceImage?
+                                {body: "image: " + externalServiceImage}
+                            else
+                                { body: "ERROR: Can not find deployed #{platform} or #{platform} has not been deployed to #{config.Namespace}" }
                     else if doc.kind == "HelmRelease"
                         for platform in theList
                             console.log("TIDEPOOL SERVICE")
@@ -168,8 +171,8 @@ module.exports = (robot) ->
                                 {body: "image: " + tidepoolServiceImage.deployment.image}
                             else if !platform? && match[3]?
                                 null
-                    else
-                        { body: "ERROR: Can not find deployed #{platform} or #{platform} has not been deployed to #{config.Namespace}" }
+                            else
+                                { body: "ERROR: Can not find deployed #{platform} or #{platform} has not been deployed to #{config.Namespace}" }
                     
 
             deployYamlFile = (ref, newYamlFileEncoded, changeAnnotations) ->
