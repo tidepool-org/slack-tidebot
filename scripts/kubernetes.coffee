@@ -151,15 +151,16 @@ module.exports = (robot) ->
                 yamlFileParsed = YAML.parseAllDocuments(yamlFileDecoded)
                 theList = repoToServices()
                 for doc in yamlFileParsed
-                    tidepoolServiceImage = doc.spec.values[platform]
-                    externalServiceImage = doc.spec.template.spec.containers.env.image
+                    console.log YAML.stringify(doc)
                     if doc.kind == "Deployment"
                         console.log YAML.stringify(doc)
+                        externalServiceImage = doc.spec.template.spec.containers.env.image
                         for platform in theList
                             if externalServiceImage?
                                 {body: "image: " + externalServiceImage}
                     if doc.kind == "HelmRelease"
                         console.log YAML.stringify(doc)
+                        tidepoolServiceImage = doc.spec.values[platform]
                         for platform in theList
                             if tidepoolServiceImage?
                                 {body: "image: " + tidepoolServiceImage.deployment.image}
