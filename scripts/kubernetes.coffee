@@ -128,7 +128,8 @@ module.exports = (robot) ->
                 yamlFileDecoded = Base64.decode(ref.content)
                 yamlFileParsed = YAML.parseAllDocuments(yamlFileDecoded)
                 for doc in yamlFileParsed
-                    if doc.contents.kind == "Deployment" || doc.contents.kind == "HelmRelease"
+                    parsedDoc = YAML.parse(doc.contents)
+                    if parsedDoc.kind == "Deployment" || parsedDoc.kind == "HelmRelease"
                         # Docker images are based on branch name. But "/" are replaced with "-"
                         # For example, the branch "pazaan/fix-errors" becomes a docker image called "pazaan-fix-errors"
                         dockerImageFilter = "glob:" + serviceBranch.replace(/\//g, "-") + "-*"
@@ -139,10 +140,10 @@ module.exports = (robot) ->
                             repoDestination = "fluxcd.io/tag." + platform
                             if changeAnnotations
                                 console.log "Change Annotations is true so parsed yaml file == tidepoolGithubYamlFile"
-                                doc.contents.metadata.annotations[repoDestination] = dockerImageFilter
+                                parsedDoc.metadata.annotations[repoDestination] = dockerImageFilter
                             else
                                 console.log "Change Annotations is false and service is a tidepool service so parsed yaml file == environmentValuesYamlFile"
-                                doc.contents.namespaces[config.Namespace][config.Service].gitops[platform] = dockerImageFilter
+                                parsedDoc.namespaces[config.Namespace][config.Service].gitops[platform] = dockerImageFilter
                         newYamlFileUpdated = YAML.stringify(yamlFileParsed)
                         Base64.encode(newYamlFileUpdated)
 
@@ -152,24 +153,23 @@ module.exports = (robot) ->
                 theList = repoToServices()
                 console.log yamlFileParsed
                 for doc in yamlFileParsed
-                    console.log "TEST content: " + doc.contents
-                    console.log "TEST doc: " + doc
-                    console.log YAML.stringify(doc.kind)
-                    console.log YAML.stringify(doc.contents.kind)
-                    if doc.contents.kind == "Deployment"
+                    parsedDoc = YAML.parse(doc.contents)
+                    console.log "TEST content: " + parsedDoc.metadata.annotations
+                    console.log "TEST doc: " + parsedDoc
+                    if parsedDoc.kind == "Deployment"
                         for platform in theList
                             console.log("EXTERNAL SERVICE")
                             console.log YAML.stringify(doc)
-                            externalServiceImage = doc.contents.spec.template.spec.containers.env.image
+                            externalServiceImage = parsedDoc.spec.template.spec.containers.env.image
                             if externalServiceImage?
                                 {body: "image: " + externalServiceImage}
                             else
                                 { body: "ERROR: Can not find deployed #{platform} or #{platform} has not been deployed to #{config.Namespace}" }
-                    else if doc.contents.kind == "HelmRelease"
+                    else if parsedDoc.kind == "HelmRelease"
                         for platform in theList
                             console.log("TIDEPOOL SERVICE")
                             console.log YAML.stringify(doc)
-                            tidepoolServiceImage = doc.contents.spec.values[platform]
+                            tidepoolServiceImage = parsedDoc.spec.values[platform]
                             if tidepoolServiceImage?
                                 {body: "image: " + tidepoolServiceImage.deployment.image}
                             else if !platform? && match[3]?
