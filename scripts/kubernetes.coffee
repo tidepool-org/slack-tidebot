@@ -128,7 +128,7 @@ module.exports = (robot) ->
                 yamlFileDecoded = Base64.decode(ref.content)
                 yamlFileParsed = YAML.parseAllDocuments(yamlFileDecoded)
                 for doc in yamlFileParsed
-                    parsedDoc = YAML.parse(doc.contents)
+                    parsedDoc = YAML.parse(doc.contents[0])
                     if parsedDoc.kind == "Deployment" || parsedDoc.kind == "HelmRelease"
                         # Docker images are based on branch name. But "/" are replaced with "-"
                         # For example, the branch "pazaan/fix-errors" becomes a docker image called "pazaan-fix-errors"
@@ -153,7 +153,7 @@ module.exports = (robot) ->
                 theList = repoToServices()
                 console.log yamlFileParsed
                 for doc in yamlFileParsed
-                    parsedDoc = YAML.parse(doc.contents)
+                    parsedDoc = YAML.parse(doc.contents[0])
                     console.log "TEST content: " + parsedDoc.metadata.annotations
                     console.log "TEST doc: " + parsedDoc
                     if parsedDoc.kind == "Deployment"
