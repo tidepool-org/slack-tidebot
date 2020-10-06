@@ -150,11 +150,12 @@ module.exports = (robot) ->
                 yamlFileDecoded = Base64.decode(ref.content)
                 yamlFileParsed = YAML.parseAllDocuments(yamlFileDecoded)
                 theList = repoToServices()
+                console.log yamlFileParsed
                 for doc in yamlFileParsed
                     console.log "TEST content: " + doc.contents
                     console.log "TEST doc: " + doc
-                    console.log YAML.stringify(doc)
-                    console.log YAML.stringify(doc.contents)
+                    console.log YAML.stringify(doc.kind)
+                    console.log YAML.stringify(doc.contents.kind)
                     if doc.contents.kind == "Deployment"
                         for platform in theList
                             console.log("EXTERNAL SERVICE")
