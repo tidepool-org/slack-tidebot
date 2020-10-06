@@ -154,7 +154,7 @@ module.exports = (robot) ->
                 for doc in yamlFileParsed
                     console.log "TEST content: " + doc.contents.items[1]["kind"]
                     console.log "TEST doc: " + doc.contents.items
-                    console.log "TEST Map: " + doc.contents[1]
+                    console.log "TEST Map: " + doc.items[1]
                     for item in doc.contents.items
                         if item["kind"] == "Deployment"
                             for platform in theList
