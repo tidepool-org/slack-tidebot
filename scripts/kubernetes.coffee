@@ -151,6 +151,8 @@ module.exports = (robot) ->
                 yamlFileParsed = YAML.parseAllDocuments(yamlFileDecoded)
                 console.log yamlFileParsed
                 console.log yamlFileParsed[0]
+                console.log YAML.stringify(yamlFileParsed)
+                console.log YAML.stringify(yamlFileParsed[0])
                 tidepoolServiceImage = yamlFileParsed[0].spec.values[platform]
                 externalServiceImage = doc.spec.spec.env.image
                 theList = repoToServices()
