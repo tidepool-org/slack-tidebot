@@ -128,7 +128,7 @@ module.exports = (robot) ->
                 yamlFileDecoded = Base64.decode(ref.content)
                 yamlFileParsed = YAML.parseAllDocuments(yamlFileDecoded)
                 for doc in yamlFileParsed
-                    if doc.Kind == "Deployment" || doc.Kind == "HelmRelease"
+                    if doc.kind == "Deployment" || doc.Kind == "HelmRelease"
                         # Docker images are based on branch name. But "/" are replaced with "-"
                         # For example, the branch "pazaan/fix-errors" becomes a docker image called "pazaan-fix-errors"
                         dockerImageFilter = "glob:" + serviceBranch.replace(/\//g, "-") + "-*"
@@ -153,15 +153,15 @@ module.exports = (robot) ->
                 console.log yamlFileParsed[0]
                 console.log YAML.stringify(yamlFileParsed)
                 console.log YAML.stringify(yamlFileParsed[0])
-                tidepoolServiceImage = yamlFileParsed[0].spec.values[platform]
-                externalServiceImage = doc.spec.spec.env.image
+                tidepoolServiceImage = doc.spec.values[platform]
+                externalServiceImage = doc.spec.template.spec.containers.env.image
                 theList = repoToServices()
                 for doc in yamlFileParsed
-                    if doc.Kind == "Deployment"
+                    if doc.kind == "Deployment"
                         for platform in theList
                             if externalServiceImage?
                                 {body: "image: " + externalServiceImage}
-                    if doc.Kind == "HelmRelease"    
+                    if doc.kind == "HelmRelease"    
                         for platform in theList
                             if tidepoolServiceImage?
                                 {body: "image: " + tidepoolServiceImage.deployment.image}
