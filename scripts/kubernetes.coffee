@@ -105,7 +105,7 @@ module.exports = (robot) ->
                 return
             
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/generated/#{config.Namespace}/#{config.Service}/helmrelease.yaml"
-            if config.Service == "marketo-service"
+            if config.Service != "tidepool"
                 tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/generated/#{config.Namespace}/#{config.Service}/deployment.yaml"
             console.log "Path to helmrelease yaml #{tidepoolGithubYamlFile}"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
@@ -149,8 +149,12 @@ module.exports = (robot) ->
                 yamlFileParsed = YAML.parse(yamlFileDecoded)
                 theList = repoToServices()
                 for platform in theList
+                    if config.Service != "tidepool"
+                        serviceImage = yamlFileParsed.spec.template.spec.containers.env.image
+                        {body: "image: " + serviceImage}
                     if yamlFileParsed.spec.values[platform]?
-                       {body: "image: " + yamlFileParsed.spec.values[platform].deployment.image}
+                        serviceImage = yamlFileParsed.spec.values[platform].deployment.image
+                        {body: "image: " + serviceImage}
                     else if !platform? && match[3]?
                         null
                     else
