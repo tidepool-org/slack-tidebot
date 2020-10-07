@@ -105,8 +105,8 @@ module.exports = (robot) ->
                 return
             
             tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/generated/#{config.Namespace}/#{config.Service}/helmrelease.yaml"
-            if config.Service != "tidepool"
-                tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/generated/#{config.Namespace}/#{config.Service}/all.yaml"
+            if config.Service == "marketo-service"
+                tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/generated/#{config.Namespace}/#{config.Service}/deployment.yaml"
             console.log "Path to helmrelease yaml #{tidepoolGithubYamlFile}"
             environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
             tidebotPostPrComment = "repos/tidepool-org/#{serviceRepo}/issues/#{issueNumber}/comments"
