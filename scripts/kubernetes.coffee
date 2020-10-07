@@ -150,8 +150,6 @@ module.exports = (robot) ->
                 theList = repoToServices()
                 for platform in theList
                     if config.Service != "tidepool"
-                        console.log yamlFileParsed.spec.template.spec.containers.env
-                        console.log yamlFileParsed.spec.template.spec.containers.env[0]
                         console.log yamlFileParsed.spec.template.spec.containers[0]
                         console.log yamlFileParsed.spec.template.spec.containers.image
                         serviceEnv = yamlFileParsed.spec.template.spec.containers[0]
