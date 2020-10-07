@@ -150,8 +150,10 @@ module.exports = (robot) ->
                 theList = repoToServices()
                 for platform in theList
                     if config.Service != "tidepool"
-                        serviceImage = yamlFileParsed.spec.template.spec.containers.env.image
-                        {body: "image: " + serviceImage}
+                        serviceEnv = yamlFileParsed.spec.template.spec.containers.env
+                        for image in serviceEnv
+                            if image == "image"
+                                {body: "image: " + serviceImage.image}
                     if yamlFileParsed.spec.values[platform]?
                         serviceImage = yamlFileParsed.spec.values[platform].deployment.image
                         {body: "image: " + serviceImage}
