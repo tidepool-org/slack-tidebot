@@ -20,6 +20,7 @@
 YAML = require('yaml')
 HubotSlack = require('hubot-slack')
 { Octokit } = require("octokit");
+{ Webhooks } = require("@octokit/webhooks");
 eventActions = require('./all')
 eventTypesRaw = process.env['HUBOT_GITHUB_EVENT_NOTIFIER_TYPES']
 Base64 = require('js-base64').Base64;
@@ -45,189 +46,196 @@ module.exports = (robot) ->
     if process.env.serviceRepoToPackage == undefined
         console.log "Service Repo to Service config not found"
         return
+
     github = require('githubot')(robot)
+    webhooks = new Webhooks({
+      secret: process.env["HUBOT_GITHUB_WEBHOOK_SECRET"]
+    })
 
     robot.router.post '/hubot/gh-repo-events', (req, res) ->
-        eventType = req.headers["x-github-event"]
-        adapter = robot.adapterName
-        room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
-        datas = req.body
+        webhooks.verify(req.body, req.headers["x-hub-signature-256"]).then () ->
+            eventType = req.headers["x-github-event"]
+            adapter = robot.adapterName
+            room = "github-events" || process.env["HUBOT_GITHUB_EVENT_NOTIFIER_ROOM"] || process.env["HUBOT_SLACK_ROOMS"]
+            datas = req.body
 
-        if datas.comment == undefined
-            announceRepoEvent adapter, datas, eventType, (what) ->
-                robot.messageRoom room, what
-                res.send ("OK")
-            return
-        comments = datas.comment.body
-        getComment = datas.comment.url
-        commentTimeCreated = datas.comment.updated_at
-        authorAssociation = datas.comment.author_association
-        sender = datas.sender.login
-
-        octokit = new Octokit({ auth: process.env['HUBOT_GITHUB_TOKEN'] });
-        prom = octokit.request('GET /orgs/{org}/memberships/{username}', {
-          org: organization,
-          username: sender
-        })
-
-        prom.then (result) ->
-            if result.status != 200
-                console.log "user is not authorized for this command"
+            if datas.comment == undefined
+                announceRepoEvent adapter, datas, eventType, (what) ->
+                    robot.messageRoom room, what
+                    res.send ("OK")
                 return
+            comments = datas.comment.body
+            getComment = datas.comment.url
+            commentTimeCreated = datas.comment.updated_at
+            authorAssociation = datas.comment.author_association
+            sender = datas.sender.login
 
-            if datas.issue == undefined
-                return
-            issueNumber = datas.issue.number
-            commentNumber = datas.issue.comments
-            branches = datas.issue.pull_request.url
+            octokit = new Octokit({ auth: process.env['HUBOT_GITHUB_TOKEN'] });
+            prom = octokit.request('GET /orgs/{org}/memberships/{username}', {
+              org: organization,
+              username: sender
+            })
 
-
-            serviceRepo = datas.repository.name
-            console.log "At #{commentTimeCreated}, #{authorAssociation} #{sender} posted comment ##{commentNumber} '#{comments}' to PR in #{serviceRepo} issue ##{issueNumber}"
-            console.log "Comment URL #{getComment}"
-            match = comments.match(/^.*?\/\b(deploy|query|default)\s+([-_\.a-zA-z0-9]+)\s*([-_\.a-zA-z0-9]+)?\s*?/)
-
-            github.get branches, (branch) ->
-                console.log "User comment and Service Branch info retrieved ready to execute command"
-                if match == null
-                    console.log "/ command complete and no longer active"
+            prom.then (result) ->
+                if result.status != 200
+                    console.log "user is not authorized for this command"
                     return
 
-                # function that takes users pr comment and extracts the Repo and Environment
-                prCommentEnvExtractor = () ->
-                    {
-                        Namespace: inputToNamespaceMap[match[2]],
-                        Repo: inputToRepoMap[match[2]],
-                        Service: serviceRepoToPackage[serviceRepo]
-                    }
-
-                serviceBranch = branch.head.ref
-                config = prCommentEnvExtractor()
-                if config.Repo == undefined
-                    console.log "Tidebot does not have a Repo config for #{match[2]} here is the config \n #{JSON.stringify(inputToRepoMap)}"
+                if datas.issue == undefined
                     return
-                if config.Namespace == undefined
-                    console.log "Tidebot does not have a Namespace config for #{match[2]} here is the config \n #{JSON.stringify(inputToNamespaceMap)}"
-                    return
-                if config.Service == undefined
-                    console.log "Tidebot does not have a Package config for #{serviceRepo} here is the config \n #{JSON.stringify(serviceRepoToPackage)}"
-                    return
+                issueNumber = datas.issue.number
+                commentNumber = datas.issue.comments
+                branches = datas.issue.pull_request.url
 
-                tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/generated/#{config.Namespace}/#{config.Service}/helmrelease.yaml"
-                if config.Service != "tidepool"
-                    tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/generated/#{config.Namespace}/#{config.Service}/deployment.yaml"
-                console.log "Path to helmrelease yaml #{tidepoolGithubYamlFile}"
-                environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
-                tidebotPostPrComment = "repos/tidepool-org/#{serviceRepo}/issues/#{issueNumber}/comments"
 
-                repoToServices = () ->
-                    platformServices = ["data", "blob", "auth", "image", "migrations", "notification", "task", "tools", "user", "prescription"]
-                    if serviceRepo == "platform" && !match[3]?
-                        console.log "Service repo is platform. Adding all platform services to kubernetes"
-                        platformServices
-                    else if serviceRepo == "platform" && match[3]?
-                        for service in platformServices
-                            if match[3] == service
-                                console.log "Service repo is platform. Adding #{service} platform service to kubernetes"
-                                [service]
-                    else
-                        [serviceRepo]
+                serviceRepo = datas.repository.name
+                console.log "At #{commentTimeCreated}, #{authorAssociation} #{sender} posted comment ##{commentNumber} '#{comments}' to PR in #{serviceRepo} issue ##{issueNumber}"
+                console.log "Comment URL #{getComment}"
+                match = comments.match(/^.*?\/\b(deploy|query|default)\s+([-_\.a-zA-z0-9]+)\s*([-_\.a-zA-z0-9]+)?\s*?/)
 
-                yamlFileEncode = (ref, changeAnnotations) ->
-                    yamlFileDecoded = Base64.decode(ref.content)
-                    yamlFileParsed = YAML.parse(yamlFileDecoded)
-                    # Docker images are based on branch name. But "/" are replaced with "-"
-                    # For example, the branch "pazaan/fix-errors" becomes a docker image called "pazaan-fix-errors"
-                    dockerImageFilter = "glob:" + serviceBranch.replace(/\//g, "-") + "-*"
-                    if match[1] == "default"
-                        dockerImageFilter =  "glob:master-*"
-                    theList = repoToServices()
-                    for platform in theList
-                        repoDestination = "fluxcd.io/tag." + platform
-                        if changeAnnotations
-                            console.log "Change Annotations is true so parsed yaml file == tidepoolGithubYamlFile"
-                            yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
+                github.get branches, (branch) ->
+                    console.log "User comment and Service Branch info retrieved ready to execute command"
+                    if match == null
+                        console.log "/ command complete and no longer active"
+                        return
+
+                    # function that takes users pr comment and extracts the Repo and Environment
+                    prCommentEnvExtractor = () ->
+                        {
+                            Namespace: inputToNamespaceMap[match[2]],
+                            Repo: inputToRepoMap[match[2]],
+                            Service: serviceRepoToPackage[serviceRepo]
+                        }
+
+                    serviceBranch = branch.head.ref
+                    config = prCommentEnvExtractor()
+                    if config.Repo == undefined
+                        console.log "Tidebot does not have a Repo config for #{match[2]} here is the config \n #{JSON.stringify(inputToRepoMap)}"
+                        return
+                    if config.Namespace == undefined
+                        console.log "Tidebot does not have a Namespace config for #{match[2]} here is the config \n #{JSON.stringify(inputToNamespaceMap)}"
+                        return
+                    if config.Service == undefined
+                        console.log "Tidebot does not have a Package config for #{serviceRepo} here is the config \n #{JSON.stringify(serviceRepoToPackage)}"
+                        return
+
+                    tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/generated/#{config.Namespace}/#{config.Service}/helmrelease.yaml"
+                    if config.Service != "tidepool"
+                        tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/generated/#{config.Namespace}/#{config.Service}/deployment.yaml"
+                    console.log "Path to helmrelease yaml #{tidepoolGithubYamlFile}"
+                    environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
+                    tidebotPostPrComment = "repos/tidepool-org/#{serviceRepo}/issues/#{issueNumber}/comments"
+
+                    repoToServices = () ->
+                        platformServices = ["data", "blob", "auth", "image", "migrations", "notification", "task", "tools", "user", "prescription"]
+                        if serviceRepo == "platform" && !match[3]?
+                            console.log "Service repo is platform. Adding all platform services to kubernetes"
+                            platformServices
+                        else if serviceRepo == "platform" && match[3]?
+                            for service in platformServices
+                                if match[3] == service
+                                    console.log "Service repo is platform. Adding #{service} platform service to kubernetes"
+                                    [service]
                         else
-                            console.log "Change Annotations is false and service is a tidepool service so parsed yaml file == environmentValuesYamlFile"
-                            yamlFileParsed.namespaces[config.Namespace][config.Service].gitops[platform] = dockerImageFilter
-                    newYamlFileUpdated = YAML.stringify(yamlFileParsed)
-                    Base64.encode(newYamlFileUpdated)
+                            [serviceRepo]
 
-                yamlFileDecodeForQuery = (ref) ->
-                    yamlFileDecoded = Base64.decode(ref.content)
-                    yamlFileParsed = YAML.parse(yamlFileDecoded)
-                    theList = repoToServices()
-                    for platform in theList
-                        if config.Service != "tidepool"
-                            serviceImage = yamlFileParsed.spec.template.spec.containers[0].image
-                            if serviceImage?
+                    yamlFileEncode = (ref, changeAnnotations) ->
+                        yamlFileDecoded = Base64.decode(ref.content)
+                        yamlFileParsed = YAML.parse(yamlFileDecoded)
+                        # Docker images are based on branch name. But "/" are replaced with "-"
+                        # For example, the branch "pazaan/fix-errors" becomes a docker image called "pazaan-fix-errors"
+                        dockerImageFilter = "glob:" + serviceBranch.replace(/\//g, "-") + "-*"
+                        if match[1] == "default"
+                            dockerImageFilter =  "glob:master-*"
+                        theList = repoToServices()
+                        for platform in theList
+                            repoDestination = "fluxcd.io/tag." + platform
+                            if changeAnnotations
+                                console.log "Change Annotations is true so parsed yaml file == tidepoolGithubYamlFile"
+                                yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
+                            else
+                                console.log "Change Annotations is false and service is a tidepool service so parsed yaml file == environmentValuesYamlFile"
+                                yamlFileParsed.namespaces[config.Namespace][config.Service].gitops[platform] = dockerImageFilter
+                        newYamlFileUpdated = YAML.stringify(yamlFileParsed)
+                        Base64.encode(newYamlFileUpdated)
+
+                    yamlFileDecodeForQuery = (ref) ->
+                        yamlFileDecoded = Base64.decode(ref.content)
+                        yamlFileParsed = YAML.parse(yamlFileDecoded)
+                        theList = repoToServices()
+                        for platform in theList
+                            if config.Service != "tidepool"
+                                serviceImage = yamlFileParsed.spec.template.spec.containers[0].image
+                                if serviceImage?
+                                    {body: "image: " + serviceImage}
+                            else if yamlFileParsed.spec.values[platform]?
+                                serviceImage = yamlFileParsed.spec.values[platform].deployment.image
                                 {body: "image: " + serviceImage}
-                        else if yamlFileParsed.spec.values[platform]?
-                            serviceImage = yamlFileParsed.spec.values[platform].deployment.image
-                            {body: "image: " + serviceImage}
-                        else if !platform? && match[3]?
-                            null
+                            else if !platform? && match[3]?
+                                null
+                            else
+                                { body: "ERROR: Can not find deployed #{platform} or #{platform} has not been deployed to #{config.Namespace}" }
+
+                    deployYamlFile = (ref, newYamlFileEncoded, changeAnnotations) ->
+                        {
+                            message: if changeAnnotations then "#{sender} updated helmrelease.yaml file in #{config.Namespace}" else "#{sender} updated values.yaml file in #{config.Namespace}",
+                            content: newYamlFileEncoded,
+                            sha: ref.sha
+                        }
+
+                    tidebotCommentBodyInitializer = () ->
+                        if match[1] == "default"
+                            branch = "Master"
                         else
-                            { body: "ERROR: Can not find deployed #{platform} or #{platform} has not been deployed to #{config.Namespace}" }
+                            branch = serviceBranch
+                        {
+                            package: if config.Service then { body: "#{sender} updated helmrelease.yaml file in #{config.Namespace}" } else {body: "OK"},
+                            success: { body: "#{sender} deployed #{serviceRepo} #{branch} branch to #{config.Namespace} namespace" },
+                            values: { body: "#{sender} updated values.yaml file in #{config.Namespace}" },
+                            tidepool: { body: "#{sender} updated helmrelease.yaml file in #{config.Namespace}" }
+                        }
 
-                deployYamlFile = (ref, newYamlFileEncoded, changeAnnotations) ->
-                    {
-                        message: if changeAnnotations then "#{sender} updated helmrelease.yaml file in #{config.Namespace}" else "#{sender} updated values.yaml file in #{config.Namespace}",
-                        content: newYamlFileEncoded,
-                        sha: ref.sha
-                    }
+                    tidebotPostPrFunction = (ref) ->
+                        currentDeployedBranch = yamlFileDecodeForQuery ref
+                        for service in currentDeployedBranch
+                            if service? && service != undefined
+                                github.post tidebotPostPrComment, service, (req) ->
+                                    console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR QUERIED BRANCH DEPLOYED: #{req.body}"
 
-                tidebotCommentBodyInitializer = () ->
-                    if match[1] == "default"
-                        branch = "Master"
-                    else
-                        branch = serviceBranch
-                    {
-                        package: if config.Service then { body: "#{sender} updated helmrelease.yaml file in #{config.Namespace}" } else {body: "OK"},
-                        success: { body: "#{sender} deployed #{serviceRepo} #{branch} branch to #{config.Namespace} namespace" },
-                        values: { body: "#{sender} updated values.yaml file in #{config.Namespace}" },
-                        tidepool: { body: "#{sender} updated helmrelease.yaml file in #{config.Namespace}" }
-                    }
+                    deployServiceAndStatusComment = (ref, changeAnnotations, tidebotCommentBody, serviceType, yamlFileType) ->
+                        console.log "Deploy #{serviceType} service yaml retrieved for updating"
+                        yamlFileEncodeForKubeConfig = yamlFileEncode ref, changeAnnotations
+                        deployService = deployYamlFile ref, yamlFileEncodeForKubeConfig, changeAnnotations
+                        github.put yamlFileType, deployService, (req) ->
+                            console.log "THIS WILL SHOW IF #{serviceType} SERVICE HELMRELEASE FILE SUCCESSFULLY UPDATES: #{deployService.message}"
+                            robot.messageRoom room, "#{deployService.message}"
+                        github.post tidebotPostPrComment, tidebotCommentBody[serviceType], (req) ->
+                            console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR #{serviceType} SERVICE HELMRELEASE FILE IS SUCCESSFUL: #{req.body}"
+                        if serviceType == "tidepool" || serviceType == "package"
+                            github.post tidebotPostPrComment, tidebotCommentBody.success, (req) ->
+                                console.log "#{req.body}: This is the tidebot comment post body for success"
 
-                tidebotPostPrFunction = (ref) ->
-                    currentDeployedBranch = yamlFileDecodeForQuery ref
-                    for service in currentDeployedBranch
-                        if service? && service != undefined
-                            github.post tidebotPostPrComment, service, (req) ->
-                                console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR QUERIED BRANCH DEPLOYED: #{req.body}"
+                    github.handleErrors (response) ->
+                        errorMessage = { body: "Error: #{response.statusCode} #{response.error}!" }
+                        github.post tidebotPostPrComment, errorMessage, (req) ->
+                            console.log "TIDEBOT COMMENT POST ERROR MESSAGE: #{req.body}"
 
-                deployServiceAndStatusComment = (ref, changeAnnotations, tidebotCommentBody, serviceType, yamlFileType) ->
-                    console.log "Deploy #{serviceType} service yaml retrieved for updating"
-                    yamlFileEncodeForKubeConfig = yamlFileEncode ref, changeAnnotations
-                    deployService = deployYamlFile ref, yamlFileEncodeForKubeConfig, changeAnnotations
-                    github.put yamlFileType, deployService, (req) ->
-                        console.log "THIS WILL SHOW IF #{serviceType} SERVICE HELMRELEASE FILE SUCCESSFULLY UPDATES: #{deployService.message}"
-                        robot.messageRoom room, "#{deployService.message}"
-                    github.post tidebotPostPrComment, tidebotCommentBody[serviceType], (req) ->
-                        console.log "THIS WILL SHOW IF TIDEBOT COMMENT POST FOR #{serviceType} SERVICE HELMRELEASE FILE IS SUCCESSFUL: #{req.body}"
-                    if serviceType == "tidepool" || serviceType == "package"
-                        github.post tidebotPostPrComment, tidebotCommentBody.success, (req) ->
-                            console.log "#{req.body}: This is the tidebot comment post body for success"
+                    if match[1] == "deploy" || match[1] == "default"
+                        tidebotCommentBody = tidebotCommentBodyInitializer()
+                        github.get environmentValuesYamlFile, (ref) ->
+                            deployServiceAndStatusComment ref, false, tidebotCommentBody, "values", environmentValuesYamlFile
 
-                github.handleErrors (response) ->
-                    errorMessage = { body: "Error: #{response.statusCode} #{response.error}!" }
-                    github.post tidebotPostPrComment, errorMessage, (req) ->
-                        console.log "TIDEBOT COMMENT POST ERROR MESSAGE: #{req.body}"
+                        github.get tidepoolGithubYamlFile, (ref) ->
+                                deployServiceAndStatusComment ref, true, tidebotCommentBody, "tidepool", tidepoolGithubYamlFile
+                        return
 
-                if match[1] == "deploy" || match[1] == "default"
-                    tidebotCommentBody = tidebotCommentBodyInitializer()
-                    github.get environmentValuesYamlFile, (ref) ->
-                        deployServiceAndStatusComment ref, false, tidebotCommentBody, "values", environmentValuesYamlFile
-
-                    github.get tidepoolGithubYamlFile, (ref) ->
-                            deployServiceAndStatusComment ref, true, tidebotCommentBody, "tidepool", tidepoolGithubYamlFile
-                    return
-
-                else if match[1] == "query"
-                    github.get tidepoolGithubYamlFile, (ref) ->
-                            tidebotPostPrFunction ref
-                    return
-            announceRepoEvent adapter, datas, eventType, (what) ->
-                robot.messageRoom room, what
+                    else if match[1] == "query"
+                        github.get tidepoolGithubYamlFile, (ref) ->
+                                tidebotPostPrFunction ref
+                        return
+                announceRepoEvent adapter, datas, eventType, (what) ->
+                    robot.messageRoom room, what
+            .catch (error) ->
+                console.log "membership check failed #{error}"
         .catch (error) ->
-            console.log "error checking membership #{error}"
+            console.log "webhook signature verification failed #{error}"
