@@ -149,7 +149,7 @@ module.exports = (robot) ->
 
                         parsed = []
                         for document in documents
-                            parsed push document.toJSON()
+                            parse.push document.toJSON()
 
                         # Update flux image policy manifests
                         if changeImagePolicies
