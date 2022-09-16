@@ -144,8 +144,12 @@ module.exports = (robot) ->
                         # For example, the branch "pazaan/fix-errors" becomes a docker image called "pazaan-fix-errors"
                         branch = serviceBranch.replace(/\//g, "-")
 
+                        typeIsArray = Array.isArray || ( value ) -> return {}.toString.call( value ) is '[object Array]'
                         yamlFileDecoded = Base64.decode(ref.content)
-                        documents = YAML.parseAllDocuments(yamlFileDecoded)
+                        documents = YAML.parse(yamlFileDecoded)
+
+                        if !typeIsArray documents
+                            documents = [documents]
 
                         # Update flux image policy manifests
                         if changeImagePolicies
@@ -169,19 +173,19 @@ module.exports = (robot) ->
                             documents = (val for service, policy of imagePolicies)
 
                         else
-                          # Update cluster values.yaml
-                          document = documents[0]
+                            # Update cluster values.yaml
+                            document = documents[0]
 
-                          console.log "Updating cluster values.yaml"
-                          services = repoToServices()
-                          for service in services
-                              if match[1] == "default"
-                                 delete yamlFileParsed.namespaces[config.Namespace][config.Service].gitops[service]
-                              else
-                                 documents.namespaces[config.Namespace][config.Service].gitops[service] = branch
+                            console.log "Updating cluster values.yaml"
+                            services = repoToServices()
+                            for service in services
+                                if match[1] == "default"
+                                   delete document.namespaces[config.Namespace][config.Service].gitops[service]
+                                else
+                                   document.namespaces[config.Namespace][config.Service].gitops[service] = branch
 
-                          # Do not change the output to yaml sequence
-                          documents = document
+                            # Do not change the output to yaml sequence
+                            documents = document
 
                         updated = YAML.stringify(documents)
                         Base64.encode(updated)
