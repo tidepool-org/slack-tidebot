@@ -144,12 +144,12 @@ module.exports = (robot) ->
                         # For example, the branch "pazaan/fix-errors" becomes a docker image called "pazaan-fix-errors"
                         branch = serviceBranch.replace(/\//g, "-")
 
-                        typeIsArray = Array.isArray || ( value ) -> return {}.toString.call( value ) is '[object Array]'
                         yamlFileDecoded = Base64.decode(ref.content)
-                        documents = YAML.parse(yamlFileDecoded)
+                        documents = YAML.parseAllDocuments(yamlFileDecoded)
 
-                        if !typeIsArray documents
-                            documents = [documents]
+                        parsed = []
+                        for document in documents
+                            parsed push document.toJSON()
 
                         # Update flux image policy manifests
                         if changeImagePolicies
@@ -157,8 +157,8 @@ module.exports = (robot) ->
 
                             # Convert to a map {serviceName: automationManifest}
                             imagePolicies = {}
-                            for i in [0...documents.length]
-                                imagePolicies[documents[i].metadata.name] = documents[i]
+                            for i in [0...parsed.length]
+                                imagePolicies[parsed[i].metadata.name] = parsed[i]
 
                             services = repoToServices()
                             for service in services
@@ -174,7 +174,7 @@ module.exports = (robot) ->
 
                         else
                             # Update cluster values.yaml
-                            document = documents[0]
+                            document = documents[0].toJSON()
 
                             console.log "Updating cluster values.yaml"
                             services = repoToServices()
