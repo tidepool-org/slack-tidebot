@@ -185,10 +185,13 @@ module.exports = (robot) ->
                                    document.namespaces[config.Namespace][config.Service].gitops[service] = branch
 
                             # Do not change the output to yaml sequence
-                            documents = document
+                            documents = [document]
 
-                        updated = YAML.stringify(documents)
-                        Base64.encode(updated)
+                        updated = []
+                        for document in documents
+                          updated.push YAML.stringify(documents)
+
+                        Base64.encode(updated.join('---\n')
 
                     yamlFileDecodeForQuery = (ref) ->
                         yamlFileDecoded = Base64.decode(ref.content)
