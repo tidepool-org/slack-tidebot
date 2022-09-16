@@ -191,7 +191,7 @@ module.exports = (robot) ->
                         for document in documents
                             updated.push YAML.stringify(documents)
 
-                        Base64.encode(updated.join('---\n')
+                        Base64.encode(updated.join('---\n'))
 
                     yamlFileDecodeForQuery = (ref) ->
                         yamlFileDecoded = Base64.decode(ref.content)
