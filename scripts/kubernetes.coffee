@@ -139,25 +139,52 @@ module.exports = (robot) ->
                         else
                             [serviceRepo]
 
-                    yamlFileEncode = (ref, changeAnnotations) ->
-                        yamlFileDecoded = Base64.decode(ref.content)
-                        yamlFileParsed = YAML.parse(yamlFileDecoded)
+                    yamlFileEncode = (ref, changeImagePolicies) ->
                         # Docker images are based on branch name. But "/" are replaced with "-"
                         # For example, the branch "pazaan/fix-errors" becomes a docker image called "pazaan-fix-errors"
-                        dockerImageFilter = "glob:" + serviceBranch.replace(/\//g, "-") + "-*"
-                        if match[1] == "default"
-                            dockerImageFilter =  "glob:master-*"
-                        theList = repoToServices()
-                        for platform in theList
-                            repoDestination = "fluxcd.io/tag." + platform
-                            if changeAnnotations
-                                console.log "Change Annotations is true so parsed yaml file == tidepoolGithubYamlFile"
-                                yamlFileParsed.metadata.annotations[repoDestination] = dockerImageFilter
-                            else
-                                console.log "Change Annotations is false and service is a tidepool service so parsed yaml file == environmentValuesYamlFile"
-                                yamlFileParsed.namespaces[config.Namespace][config.Service].gitops[platform] = dockerImageFilter
-                        newYamlFileUpdated = YAML.stringify(yamlFileParsed)
-                        Base64.encode(newYamlFileUpdated)
+                        branch = serviceBranch.replace(/\//g, "-")
+
+                        yamlFileDecoded = Base64.decode(ref.content)
+                        documents = YAML.parseAllDocuments(yamlFileDecoded)
+
+                        # Update flux image policy manifests
+                        if changeImagePolicies
+                            console.log "Updating image policies"
+
+                            # Convert to a map {serviceName: automationManifest}
+                            imagePolicies = {}
+                            for i in [0...documents.length]
+                                imagePolicies[documents[i].metadata.name] = documents[i]
+
+                            services = repoToServices()
+                            for service in services
+                                if service of imagePolicies
+                                    pattern = '^' + branch + '-[0-9A-Fa-f]{40}-(?P<ts>[0-9]+)$'
+                                    if match[1] == "default"
+                                        pattern = imagePolicies[service].metadata.annotations['automation.tidepool.org/default-pattern']
+
+                                    imagePolicies[service].spec.filterTags.pattern = pattern
+
+                            documents = []
+                            documents = (val for service, policy of imagePolicies)
+
+                        else
+                          # Update cluster values.yaml
+                          document = documents[0]
+
+                          console.log "Updating cluster values.yaml"
+                          services = repoToServices()
+                          for service in services
+                              if match[1] == "default"
+                                 delete yamlFileParsed.namespaces[config.Namespace][config.Service].gitops[service]
+                              else
+                                 documents.namespaces[config.Namespace][config.Service].gitops[service] = branch
+
+                          # Do not change the output to yaml sequence
+                          documents = document
+
+                        updated = YAML.stringify(documents)
+                        Base64.encode(updated)
 
                     yamlFileDecodeForQuery = (ref) ->
                         yamlFileDecoded = Base64.decode(ref.content)
