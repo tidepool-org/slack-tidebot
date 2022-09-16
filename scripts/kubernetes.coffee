@@ -122,7 +122,7 @@ module.exports = (robot) ->
                     tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/generated/#{config.Namespace}/#{config.Service}/fluxpolicies.yaml"
                     if config.Service != "tidepool"
                         tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/generated/#{config.Namespace}/#{config.Service}/fluxpolicy.yaml"
-                    console.log "Path to helmrelease yaml #{tidepoolGithubYamlFile}"
+                    console.log "Path to flux policies #{tidepoolGithubYamlFile}"
                     environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
                     tidebotPostPrComment = "repos/tidepool-org/#{serviceRepo}/issues/#{issueNumber}/comments"
 
@@ -212,7 +212,7 @@ module.exports = (robot) ->
 
                     deployYamlFile = (ref, newYamlFileEncoded, changeAnnotations) ->
                         {
-                            message: if changeAnnotations then "#{sender} updated helmrelease.yaml file in #{config.Namespace}" else "#{sender} updated values.yaml file in #{config.Namespace}",
+                            message: if changeAnnotations then "#{sender} updated flux policies in #{config.Namespace}" else "#{sender} updated values.yaml file in #{config.Namespace}",
                             content: newYamlFileEncoded,
                             sha: ref.sha
                         }
@@ -223,10 +223,10 @@ module.exports = (robot) ->
                         else
                             branch = serviceBranch
                         {
-                            package: if config.Service then { body: "#{sender} updated helmrelease.yaml file in #{config.Namespace}" } else {body: "OK"},
+                            package: if config.Service then { body: "#{sender} updated flux policies file in #{config.Namespace}" } else {body: "OK"},
                             success: { body: "#{sender} deployed #{serviceRepo} #{branch} branch to #{config.Namespace} namespace" },
                             values: { body: "#{sender} updated values.yaml file in #{config.Namespace}" },
-                            tidepool: { body: "#{sender} updated helmrelease.yaml file in #{config.Namespace}" }
+                            tidepool: { body: "#{sender} updated flux policies file in #{config.Namespace}" }
                         }
 
                     tidebotPostPrFunction = (ref) ->
