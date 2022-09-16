@@ -189,7 +189,7 @@ module.exports = (robot) ->
 
                         updated = []
                         for document in documents
-                            updated.push YAML.stringify(documents)
+                            updated.push YAML.stringify(document)
 
                         Base64.encode(updated.join('---\n'))
 
