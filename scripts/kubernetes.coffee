@@ -170,7 +170,7 @@ module.exports = (robot) ->
                                     imagePolicies[service].spec.filterTags.pattern = pattern
 
                             documents = []
-                            documents = (service for service, policy of imagePolicies)
+                            documents = (policy  for service, policy of imagePolicies)
 
                         else
                             # Update cluster values.yaml
