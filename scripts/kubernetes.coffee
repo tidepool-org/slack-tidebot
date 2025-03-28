@@ -179,6 +179,8 @@ module.exports = (robot) ->
                             console.log "Updating cluster values.yaml"
                             services = repoToServices()
                             for service in services
+                                if service == "tide-whisperer"
+                                   service = "tidewhisperer"
                                 if match[1] == "default"
                                    delete document.namespaces[config.Namespace][config.Service].gitops[service]
                                 else
