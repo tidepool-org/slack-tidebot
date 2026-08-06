@@ -120,8 +120,6 @@ module.exports = (robot) ->
                         return
 
                     tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/generated/#{config.Namespace}/#{config.Service}/fluxpolicies.yaml"
-                    if config.Service != "tidepool"
-                        tidepoolGithubYamlFile = "repos/tidepool-org/#{config.Repo}/contents/generated/#{config.Namespace}/#{config.Service}/fluxpolicy.yaml"
                     console.log "Path to flux policies #{tidepoolGithubYamlFile}"
                     environmentValuesYamlFile = "repos/tidepool-org/#{config.Repo}/contents/values.yaml"
                     tidebotPostPrComment = "repos/tidepool-org/#{serviceRepo}/issues/#{issueNumber}/comments"
